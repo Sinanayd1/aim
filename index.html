@@ -21,6 +21,13 @@
             width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
+        /* REKOR TABELASI */
+        #high-score-display {
+            background: rgba(255, 70, 85, 0.1); border: 1px solid #ff4655;
+            padding: 10px; border-radius: 8px; margin-bottom: 15px;
+            color: #ff4655; font-weight: bold; letter-spacing: 1px;
+        }
+
         #preview-box {
             width: 350px; height: 350px; border-radius: 15px; border: 2px solid #484f58;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;
@@ -50,6 +57,26 @@
         }
         #start-btn:hover { background: #ff5e6a; transform: translateY(-2px); }
 
+        /* ÖZET EKRANI (Oyun Sonu) */
+        #result-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 17, 23, 0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 600; text-align: center;
+        }
+        .result-box {
+            background: #161b22; padding: 40px; border-radius: 15px; border: 1px solid #30363d;
+            box-shadow: 0 0 50px rgba(255, 70, 85, 0.2); width: 400px;
+        }
+        .res-stat { font-size: 24px; font-weight: bold; margin: 10px 0; color: #fff; }
+        .res-val { color: #ff4655; font-size: 32px; }
+        #lobby-btn {
+            margin-top: 20px; padding: 12px 30px; font-size: 16px; font-weight: bold;
+            background: #21262d; color: white; border: 1px solid #484f58; border-radius: 8px; cursor: pointer;
+        }
+        #lobby-btn:hover { background: #30363d; }
+
+        /* OYUN İÇİ HUD VE COMBO */
         #hud {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 40px; background: rgba(13, 17, 23, 0.8);
@@ -58,6 +85,13 @@
         }
         .hud-item { display: flex; flex-direction: column; align-items: center; }
         .hud-label { font-size: 10px; color: #8b949e; margin-bottom: 2px; }
+
+        #combo-text {
+            position: fixed; top: 100px; left: 50%; transform: translateX(-50%) scale(1);
+            font-size: 28px; font-weight: 900; color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+            opacity: 0; transition: all 0.2s ease-out; z-index: 150; pointer-events: none;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
 
         #world {
             position: absolute; width: 3000px; height: 3000px;
@@ -71,7 +105,6 @@
         .ch-part { background: #fff; position: absolute; box-shadow: 0 0 2px #000; }
         #crosshair, #preview-ch { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
         
-        /* Yeni Akıcı Geçiş Fizikleri (Transition) eklendi */
         .target { position: absolute; z-index: 10; cursor: none; transition: left 0.15s ease-out, top 0.15s ease-out; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
@@ -82,7 +115,9 @@
 
 <div id="lobby-overlay">
     <div id="lobby-content">
-        <h1 style="margin-bottom: 15px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
+        <h1 style="margin-bottom: 10px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
+        
+        <div id="high-score-display">🏆 EN YÜKSEK SKOR: <span id="lobby-high-score">0</span></div>
         
         <div class="form-row">
             <div class="form-col">
@@ -94,11 +129,11 @@
                 </select>
             </div>
             <div class="form-col">
-                <label>Hedef Tipi</label>
-                <select id="targetType">
-                    <option value="type-balloon">Kırmızı Balon</option>
-                    <option value="type-orb">Mavi Küre</option>
-                    <option value="type-cube">Sarı Küp</option>
+                <label>Süre Sınırı</label>
+                <select id="timeLimit">
+                    <option value="60">60 Saniye</option>
+                    <option value="30">30 Saniye</option>
+                    <option value="0">Sınırsız (Serbest)</option>
                 </select>
             </div>
         </div>
@@ -120,11 +155,15 @@
 
         <div class="form-row">
             <div class="form-col">
-                <label>Hedef / Kaçış Hızı</label>
-                <input type="range" id="speed" min="1" max="25" value="8">
+                <label>Hedef Tipi</label>
+                <select id="targetType">
+                    <option value="type-balloon">Kırmızı Balon</option>
+                    <option value="type-orb">Mavi Küre</option>
+                    <option value="type-cube">Sarı Küp</option>
+                </select>
             </div>
             <div class="form-col">
-                <label>Hedef Boyutu (Scale)</label>
+                <label>Hedef Boyutu</label>
                 <input type="range" id="targetSize" min="0.5" max="2" step="0.1" value="1">
             </div>
         </div>
@@ -139,10 +178,13 @@
                 </select>
             </div>
             <div class="form-col">
-                <label>Valorant Sens</label>
-                <input type="number" id="valSens" value="0.5" step="0.1">
+                <label>Kaçış Hızı</label>
+                <input type="range" id="speed" min="1" max="25" value="8">
             </div>
         </div>
+        
+        <label>Valorant Sens</label>
+        <input type="number" id="valSens" value="0.5" step="0.1">
 
         <button id="start-btn">OYUNA BAŞLA</button>
         <p style="margin-top: 10px; color: #484f58; font-size: 11px; text-align: center;">Kamerayı bırakmak için <b>ESC</b> tuşuna bas.</p>
@@ -155,12 +197,25 @@
     </div>
 </div>
 
-<div id="hud">
-    <div class="hud-item"><span class="hud-label">SKOR</span><span id="score">0</span></div>
-    <div class="hud-item"><span class="hud-label">SÜRE</span><span id="timer">00:00</span></div>
-    <div class="hud-item"><span class="hud-label">İSABET</span><span id="accuracy">100</span>%</div>
+<div id="result-overlay">
+    <div class="result-box">
+        <h1 style="color: #ff4655; margin-bottom: 20px;">SÜRE BİTTİ!</h1>
+        <div class="res-stat">SKOR: <span class="res-val" id="res-score">0</span></div>
+        <div class="res-stat">İSABET: <span class="res-val" id="res-acc">0%</span></div>
+        <div class="res-stat">EN İYİ SERİ: <span class="res-val" id="res-combo">0</span></div>
+        <div id="new-record-msg" style="color: #00ff00; font-weight: bold; margin-top: 15px; display: none;">🏆 YENİ REKOR! 🏆</div>
+        <button id="lobby-btn">LOBİYE DÖN</button>
+    </div>
 </div>
 
+<div id="hud">
+    <div class="hud-item"><span class="hud-label">SKOR</span><span id="score">0</span></div>
+    <div class="hud-item"><span class="hud-label">KALAN SÜRE</span><span id="timer">00:00</span></div>
+    <div class="hud-item"><span class="hud-label">İSABET</span><span id="accuracy">100</span>%</div>
+    <div class="hud-item"><span class="hud-label">COMBO</span><span id="combo-hud" style="color:#ffcc00;">0x</span></div>
+</div>
+
+<div id="combo-text"></div>
 <div id="crosshair" style="position: fixed;"></div>
 
 <div id="game-container">
@@ -173,12 +228,21 @@
     const world = document.getElementById('world');
     const hud = document.getElementById('hud');
     const lobby = document.getElementById('lobby-overlay');
+    const resultOverlay = document.getElementById('result-overlay');
+    
+    // Metin Alanları
     const scoreText = document.getElementById('score');
     const timerText = document.getElementById('timer');
     const accText = document.getElementById('accuracy');
+    const comboHudText = document.getElementById('combo-hud');
+    const comboTextPopup = document.getElementById('combo-text');
+    
+    // Form Alanları
     const valSensInput = document.getElementById('valSens');
     const startBtn = document.getElementById('start-btn');
+    const lobbyBtn = document.getElementById('lobby-btn');
     const gameModeSelect = document.getElementById('gameMode');
+    const timeLimitSelect = document.getElementById('timeLimit');
     const bgTypeSelect = document.getElementById('bgType');
     const targetTypeSelect = document.getElementById('targetType');
     const targetSizeInput = document.getElementById('targetSize');
@@ -188,9 +252,19 @@
     const previewCh = document.getElementById('preview-ch');
     const previewTarget = document.getElementById('preview-target');
 
-    let score = 0, shots = 0, hits = 0, startTime = 0;
-    let viewX = 0, viewY = 0, isGameRunning = false;
+    // Oyun Değişkenleri
+    let score = 0, shots = 0, hits = 0;
+    let combo = 0, maxCombo = 0;
+    let viewX = 0, viewY = 0;
+    let gameState = 'lobby'; // 'lobby', 'playing', 'result'
     let trackingAngle = 0;
+    let timerInterval;
+    let timeLeft = 0;
+    let maxTime = 0;
+    
+    // Rekor Sistemi Yükleme
+    let highScore = localStorage.getItem('sinanAimTrainerHighScore') || 0;
+    document.getElementById('lobby-high-score').innerText = highScore;
 
     function updatePreviewAndCrosshair() {
         const type = document.getElementById('chType').value;
@@ -210,9 +284,8 @@
         chBox.innerHTML = chHTML;
         previewCh.innerHTML = chHTML;
         previewBox.className = bgTypeSelect.value;
-        
         previewTarget.className = `target ${targetTypeSelect.value}`;
-        previewTarget.style.transform = `scale(${tScale})`; // Hedef boyutu ayarı
+        previewTarget.style.transform = `scale(${tScale})`;
     }
 
     document.getElementById('chType').addEventListener('change', updatePreviewAndCrosshair);
@@ -223,24 +296,73 @@
     updatePreviewAndCrosshair();
 
     startBtn.onclick = () => document.body.requestPointerLock();
+    
+    lobbyBtn.onclick = () => {
+        resultOverlay.style.display = 'none';
+        lobby.style.display = 'flex';
+        gameState = 'lobby';
+    };
 
     document.addEventListener('pointerlockchange', () => {
         if (document.pointerLockElement === document.body) {
-            isGameRunning = true;
-            lobby.style.display = 'none';
-            hud.style.display = 'flex';
-            world.className = bgTypeSelect.value;
-            score = 0; shots = 0; hits = 0; viewX = 0; viewY = 0;
-            startTime = Date.now();
-            updateStats();
-            resetTargets();
+            // Oyuna Başla veya Devam Et
+            if (gameState === 'lobby' || gameState === 'result') {
+                startGame();
+            }
         } else {
-            isGameRunning = false;
-            lobby.style.display = 'flex';
-            hud.style.display = 'none';
-            clearAllTargets();
+            // ESC'ye basıldı veya Süre Bitti
+            if (gameState === 'playing') {
+                lobby.style.display = 'flex';
+                hud.style.display = 'none';
+                clearAllTargets();
+                clearInterval(timerInterval);
+                gameState = 'lobby';
+            }
         }
     });
+
+    function startGame() {
+        gameState = 'playing';
+        lobby.style.display = 'none';
+        resultOverlay.style.display = 'none';
+        hud.style.display = 'flex';
+        world.className = bgTypeSelect.value;
+        
+        score = 0; shots = 0; hits = 0; combo = 0; maxCombo = 0; viewX = 0; viewY = 0;
+        document.getElementById('new-record-msg').style.display = 'none';
+        
+        maxTime = parseInt(timeLimitSelect.value);
+        timeLeft = maxTime;
+        
+        updateStats();
+        resetTargets();
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(gameTick, 30); // 30ms oyun döngüsü
+    }
+
+    function endGame() {
+        gameState = 'result';
+        document.exitPointerLock(); // Kamerayı serbest bırak
+        clearInterval(timerInterval);
+        hud.style.display = 'none';
+        clearAllTargets();
+        
+        // Skorları Yazdır
+        document.getElementById('res-score').innerText = Math.floor(score);
+        document.getElementById('res-acc').innerText = shots === 0 ? "100%" : Math.floor((hits / shots) * 100) + "%";
+        document.getElementById('res-combo').innerText = maxCombo + "x";
+        
+        // Rekor Kontrolü
+        if (score > highScore && maxTime > 0) { // Sınırsız modda rekor kaydedilmez
+            highScore = Math.floor(score);
+            localStorage.setItem('sinanAimTrainerHighScore', highScore);
+            document.getElementById('lobby-high-score').innerText = highScore;
+            document.getElementById('new-record-msg').style.display = 'block';
+        }
+        
+        resultOverlay.style.display = 'flex';
+    }
 
     function resetTargets() {
         clearAllTargets();
@@ -248,16 +370,15 @@
         for(let i=0; i<count; i++) spawn();
     }
 
-    // DÜZELTME: Sadece 'world' içindeki hedefleri sil, önizlemeyi silme!
     function clearAllTargets() {
         document.querySelectorAll('#world .target').forEach(t => t.remove());
     }
 
     function spawn() {
-        if(!isGameRunning) return;
+        if(gameState !== 'playing') return;
         const t = document.createElement('div');
         t.className = `target ${targetTypeSelect.value}`;
-        t.style.transform = `scale(${targetSizeInput.value})`; // Boyutu uygula
+        t.style.transform = `scale(${targetSizeInput.value})`;
         
         const rx = 1500 + (Math.random()-0.5) * 800; 
         const ry = 1500 + (Math.random()-0.5) * 600; 
@@ -268,7 +389,7 @@
     }
 
     document.addEventListener('mousemove', (e) => {
-        if (isGameRunning) {
+        if (gameState === 'playing') {
             let sens = parseFloat(valSensInput.value) || 0.5;
             viewX -= e.movementX * sens * 1.5;
             viewY -= e.movementY * sens * 1.5;
@@ -279,39 +400,92 @@
         }
     });
 
+    // VURUŞ VE COMBO MANTIĞI
     document.addEventListener('mousedown', () => {
-        if (!isGameRunning || gameModeSelect.value === 'tracking') return;
+        if (gameState !== 'playing' || gameModeSelect.value === 'tracking') return;
         shots++;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
+        let hitDetected = false;
         
         document.querySelectorAll('#world .target').forEach(t => {
-            const r = t.getBoundingClientRect(); // getBoundingClientRect scale() değerini de hesaplar, hit-box kusursuz çalışır
+            const r = t.getBoundingClientRect();
             if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+                hitDetected = true;
                 hits++; score++;
                 t.remove();
                 spawn();
             }
         });
+        
+        // Combo Sistemi
+        if (hitDetected) {
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+            showComboFeedback();
+        } else {
+            combo = 0; // Iskaladığında combo sıfırlanır
+        }
+        
         updateStats();
     });
+
+    function showComboFeedback() {
+        let msg = "";
+        if (combo === 5) msg = "İLK KAN!";
+        else if (combo === 10) msg = "SERİ KATİL!";
+        else if (combo === 15) msg = "DURDURULAMAZ!";
+        else if (combo >= 20 && combo % 5 === 0) msg = "İLAH GİBİ!";
+
+        if (msg !== "") {
+            comboTextPopup.innerText = `${msg} (${combo}x)`;
+            comboTextPopup.style.opacity = 1;
+            comboTextPopup.style.transform = "translateX(-50%) scale(1.5)";
+            
+            // Ekstra Skor Bonusu
+            score += 2; 
+            
+            setTimeout(() => {
+                comboTextPopup.style.opacity = 0;
+                comboTextPopup.style.transform = "translateX(-50%) scale(1)";
+            }, 1000);
+        }
+    }
 
     function updateStats() {
         scoreText.innerText = Math.floor(score);
         accText.innerText = shots === 0 ? 100 : Math.floor((hits / shots) * 100);
+        comboHudText.innerText = combo + "x";
     }
 
-    setInterval(() => {
-        if (!isGameRunning) return;
+    // OYUN DÖNGÜSÜ
+    let lastTimeUpdate = Date.now();
+    
+    function gameTick() {
+        if (gameState !== 'playing') return;
         
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
-        const s = (elapsed % 60).toString().padStart(2, '0');
-        timerText.innerText = `${m}:${s}`;
+        // Süre Kontrolü
+        if (maxTime > 0) {
+            let now = Date.now();
+            if (now - lastTimeUpdate >= 1000) {
+                timeLeft--;
+                lastTimeUpdate = now;
+                if (timeLeft <= 0) {
+                    endGame();
+                    return;
+                }
+            }
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerText.innerText = `${m}:${s}`;
+        } else {
+            timerText.innerText = "∞"; // Sınırsız
+        }
 
         const speed = parseInt(document.getElementById('speed').value);
         const mode = gameModeSelect.value;
 
+        // Tracking (Takip)
         if (mode === 'tracking') {
             const t = document.querySelector('#world .target');
             if (t) {
@@ -329,36 +503,26 @@
             }
         }
 
-        // AKICI VE DOĞAL KAÇIŞ SİSTEMİ
+        // Flick (Kaçış)
         if (mode === 'flick') {
             document.querySelectorAll('#world .target').forEach(t => {
                 const r = t.getBoundingClientRect();
                 const cx = window.innerWidth / 2;
                 const cy = window.innerHeight / 2;
-                
-                // Balonun merkez noktası
                 const tx = r.left + r.width / 2;
                 const ty = r.top + r.height / 2;
                 const dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2));
 
-                if (dist < 150) { // Farenin yaklaştığını hissettiğinde
+                if (dist < 150) { 
                     let currentX = parseFloat(t.style.left);
                     let currentY = parseFloat(t.style.top);
-                    
-                    // Fareden uzağa doğru bir vektör hesapla (Ters yön)
                     let dirX = (tx - cx) / dist;
                     let dirY = (ty - cy) / dist;
-                    
-                    // Düz bir çizgi yerine hafif kavisli kaçması için ufak bir açı (sapma) ekliyoruz
                     let angle = Math.atan2(dirY, dirX) + (Math.random() - 0.5); 
                     
-                    let moveX = Math.cos(angle) * speed * 6;
-                    let moveY = Math.sin(angle) * speed * 6;
-                    
-                    let newX = currentX + moveX;
-                    let newY = currentY + moveY;
+                    let newX = currentX + Math.cos(angle) * speed * 6;
+                    let newY = currentY + Math.sin(angle) * speed * 6;
 
-                    // Merkeze İtme Sınırları (Kaçarken ekrandan çıkmasın)
                     if(newX < 1100) newX = 1100 + Math.random() * 50; 
                     if(newX > 1900) newX = 1900 - Math.random() * 50;
                     if(newY < 1200) newY = 1200 + Math.random() * 50; 
@@ -369,7 +533,7 @@
                 }
             });
         }
-    }, 40);
+    }
 
 </script>
 </body>
