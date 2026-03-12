@@ -18,13 +18,13 @@
         #lobby-content {
             background: rgba(22, 27, 34, 0.95);
             padding: 25px 35px; border-radius: 15px; border: 1px solid #30363d;
-            width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         /* REKOR TABELASI */
         #high-score-display {
             background: rgba(255, 70, 85, 0.1); border: 1px solid #ff4655;
-            padding: 10px; border-radius: 8px; margin-bottom: 15px;
+            padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;
             color: #ff4655; font-weight: bold; letter-spacing: 1px;
         }
 
@@ -48,7 +48,7 @@
             width: 100%; background: #21262d; color: white; border: 1px solid #484f58; 
             padding: 8px; margin: 5px 0 12px 0; border-radius: 6px; font-size: 13px; outline: none;
         }
-        label { font-size: 11px; font-weight: bold; color: #8b949e; text-transform: uppercase; display: block; }
+        label { font-size: 10px; font-weight: bold; color: #8b949e; text-transform: uppercase; display: block; }
 
         #start-btn {
             width: 100%; padding: 15px; font-size: 16px; font-weight: bold; letter-spacing: 1px;
@@ -57,7 +57,7 @@
         }
         #start-btn:hover { background: #ff5e6a; transform: translateY(-2px); }
 
-        /* ÖZET EKRANI (Oyun Sonu) */
+        /* ÖZET EKRANI */
         #result-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(13, 17, 23, 0.95);
@@ -68,8 +68,8 @@
             background: #161b22; padding: 40px; border-radius: 15px; border: 1px solid #30363d;
             box-shadow: 0 0 50px rgba(255, 70, 85, 0.2); width: 400px;
         }
-        .res-stat { font-size: 24px; font-weight: bold; margin: 10px 0; color: #fff; }
-        .res-val { color: #ff4655; font-size: 32px; }
+        .res-stat { font-size: 20px; font-weight: bold; margin: 10px 0; color: #fff; }
+        .res-val { color: #ff4655; font-size: 28px; }
         #lobby-btn {
             margin-top: 20px; padding: 12px 30px; font-size: 16px; font-weight: bold;
             background: #21262d; color: white; border: 1px solid #484f58; border-radius: 8px; cursor: pointer;
@@ -105,7 +105,7 @@
         .ch-part { background: #fff; position: absolute; box-shadow: 0 0 2px #000; }
         #crosshair, #preview-ch { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
         
-        .target { position: absolute; z-index: 10; cursor: none; transition: left 0.15s ease-out, top 0.15s ease-out; }
+        .target { position: absolute; z-index: 10; cursor: none; transition: left 0.1s ease-out, top 0.1s ease-out; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
         .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
@@ -115,15 +115,16 @@
 
 <div id="lobby-overlay">
     <div id="lobby-content">
-        <h1 style="margin-bottom: 10px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
+        <h1 style="margin-bottom: 5px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
         
-        <div id="high-score-display">🏆 EN YÜKSEK SKOR: <span id="lobby-high-score">0</span></div>
+        <div id="high-score-display">🏆 <span id="current-mode-name">KLASİK</span> REKORU: <span id="lobby-high-score">0</span></div>
         
         <div class="form-row">
             <div class="form-col">
                 <label>Oyun Modu</label>
                 <select id="gameMode">
-                    <option value="flick">Klasik (Flick)</option>
+                    <option value="flick">Klasik (Sabit Flick)</option>
+                    <option value="reflex">Refleks (Süreli Çıkan)</option>
                     <option value="tracking">Uzun Takip</option>
                     <option value="multi">Çoklu Hedef</option>
                 </select>
@@ -134,6 +135,36 @@
                     <option value="60">60 Saniye</option>
                     <option value="30">30 Saniye</option>
                     <option value="0">Sınırsız (Serbest)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-col">
+                <label>Hedef Tipi</label>
+                <select id="targetType">
+                    <option value="type-balloon">Kırmızı Balon</option>
+                    <option value="type-orb">Mavi Küre</option>
+                    <option value="type-cube">Sarı Küp</option>
+                </select>
+            </div>
+            <div class="form-col">
+                <label>Hedef Boyutu</label>
+                <input type="range" id="targetSize" min="0.5" max="2" step="0.1" value="1">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-col">
+                <label>Takip Hızı (Sadece Tracking)</label>
+                <input type="range" id="speed" min="1" max="25" value="8">
+            </div>
+            <div class="form-col">
+                <label>Refleks Zorluğu</label>
+                <select id="difficulty">
+                    <option value="1200">Kolay (1.2 Saniye)</option>
+                    <option value="800">Orta (0.8 Saniye)</option>
+                    <option value="450">Zor (0.45 Saniye)</option>
                 </select>
             </div>
         </div>
@@ -155,21 +186,6 @@
 
         <div class="form-row">
             <div class="form-col">
-                <label>Hedef Tipi</label>
-                <select id="targetType">
-                    <option value="type-balloon">Kırmızı Balon</option>
-                    <option value="type-orb">Mavi Küre</option>
-                    <option value="type-cube">Sarı Küp</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Hedef Boyutu</label>
-                <input type="range" id="targetSize" min="0.5" max="2" step="0.1" value="1">
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-col">
                 <label>Arka Plan</label>
                 <select id="bgType">
                     <option value="bg-dots">Noktalı</option>
@@ -178,13 +194,10 @@
                 </select>
             </div>
             <div class="form-col">
-                <label>Kaçış Hızı</label>
-                <input type="range" id="speed" min="1" max="25" value="8">
+                <label>Valorant Sens</label>
+                <input type="number" id="valSens" value="0.5" step="0.1">
             </div>
         </div>
-        
-        <label>Valorant Sens</label>
-        <input type="number" id="valSens" value="0.5" step="0.1">
 
         <button id="start-btn">OYUNA BAŞLA</button>
         <p style="margin-top: 10px; color: #484f58; font-size: 11px; text-align: center;">Kamerayı bırakmak için <b>ESC</b> tuşuna bas.</p>
@@ -230,14 +243,12 @@
     const lobby = document.getElementById('lobby-overlay');
     const resultOverlay = document.getElementById('result-overlay');
     
-    // Metin Alanları
     const scoreText = document.getElementById('score');
     const timerText = document.getElementById('timer');
     const accText = document.getElementById('accuracy');
     const comboHudText = document.getElementById('combo-hud');
     const comboTextPopup = document.getElementById('combo-text');
     
-    // Form Alanları
     const valSensInput = document.getElementById('valSens');
     const startBtn = document.getElementById('start-btn');
     const lobbyBtn = document.getElementById('lobby-btn');
@@ -246,25 +257,35 @@
     const bgTypeSelect = document.getElementById('bgType');
     const targetTypeSelect = document.getElementById('targetType');
     const targetSizeInput = document.getElementById('targetSize');
+    const difficultySelect = document.getElementById('difficulty');
     
     const chBox = document.getElementById('crosshair');
     const previewBox = document.getElementById('preview-box');
     const previewCh = document.getElementById('preview-ch');
     const previewTarget = document.getElementById('preview-target');
 
-    // Oyun Değişkenleri
     let score = 0, shots = 0, hits = 0;
     let combo = 0, maxCombo = 0;
     let viewX = 0, viewY = 0;
-    let gameState = 'lobby'; // 'lobby', 'playing', 'result'
+    let gameState = 'lobby'; 
     let trackingAngle = 0;
     let timerInterval;
-    let timeLeft = 0;
-    let maxTime = 0;
+    let timeLeft = 0, maxTime = 0;
+    let reflexTimeout; // Yeni Refleks Modu Zamanlayıcısı
     
-    // Rekor Sistemi Yükleme
-    let highScore = localStorage.getItem('sinanAimTrainerHighScore') || 0;
-    document.getElementById('lobby-high-score').innerText = highScore;
+    // Her mod için ayrı rekor tablosu
+    let highScores = JSON.parse(localStorage.getItem('sinanAimScores')) || {
+        flick: 0, reflex: 0, tracking: 0, multi: 0
+    };
+
+    function updateLobbyHighScore() {
+        const mode = gameModeSelect.value;
+        const modeNames = { flick: "KLASİK", reflex: "REFLEKS", tracking: "TAKİP", multi: "ÇOKLU" };
+        document.getElementById('current-mode-name').innerText = modeNames[mode];
+        document.getElementById('lobby-high-score').innerText = highScores[mode] || 0;
+    }
+    gameModeSelect.addEventListener('change', updateLobbyHighScore);
+    updateLobbyHighScore();
 
     function updatePreviewAndCrosshair() {
         const type = document.getElementById('chType').value;
@@ -305,18 +326,16 @@
 
     document.addEventListener('pointerlockchange', () => {
         if (document.pointerLockElement === document.body) {
-            // Oyuna Başla veya Devam Et
-            if (gameState === 'lobby' || gameState === 'result') {
-                startGame();
-            }
+            if (gameState === 'lobby' || gameState === 'result') startGame();
         } else {
-            // ESC'ye basıldı veya Süre Bitti
             if (gameState === 'playing') {
                 lobby.style.display = 'flex';
                 hud.style.display = 'none';
                 clearAllTargets();
                 clearInterval(timerInterval);
+                clearTimeout(reflexTimeout);
                 gameState = 'lobby';
+                updateLobbyHighScore();
             }
         }
     });
@@ -338,30 +357,30 @@
         resetTargets();
         
         clearInterval(timerInterval);
-        timerInterval = setInterval(gameTick, 30); // 30ms oyun döngüsü
+        timerInterval = setInterval(gameTick, 30); 
     }
 
     function endGame() {
         gameState = 'result';
-        document.exitPointerLock(); // Kamerayı serbest bırak
+        document.exitPointerLock(); 
         clearInterval(timerInterval);
+        clearTimeout(reflexTimeout);
         hud.style.display = 'none';
         clearAllTargets();
         
-        // Skorları Yazdır
         document.getElementById('res-score').innerText = Math.floor(score);
         document.getElementById('res-acc').innerText = shots === 0 ? "100%" : Math.floor((hits / shots) * 100) + "%";
         document.getElementById('res-combo').innerText = maxCombo + "x";
         
-        // Rekor Kontrolü
-        if (score > highScore && maxTime > 0) { // Sınırsız modda rekor kaydedilmez
-            highScore = Math.floor(score);
-            localStorage.setItem('sinanAimTrainerHighScore', highScore);
-            document.getElementById('lobby-high-score').innerText = highScore;
+        const mode = gameModeSelect.value;
+        if (score > (highScores[mode] || 0) && maxTime > 0) { 
+            highScores[mode] = Math.floor(score);
+            localStorage.setItem('sinanAimScores', JSON.stringify(highScores));
             document.getElementById('new-record-msg').style.display = 'block';
         }
         
         resultOverlay.style.display = 'flex';
+        updateLobbyHighScore();
     }
 
     function resetTargets() {
@@ -374,18 +393,34 @@
         document.querySelectorAll('#world .target').forEach(t => t.remove());
     }
 
+    // HEDEF OLUŞTURMA VE REFLEKS MODU MANTIĞI
     function spawn() {
         if(gameState !== 'playing') return;
         const t = document.createElement('div');
         t.className = `target ${targetTypeSelect.value}`;
         t.style.transform = `scale(${targetSizeInput.value})`;
         
-        const rx = 1500 + (Math.random()-0.5) * 800; 
-        const ry = 1500 + (Math.random()-0.5) * 600; 
+        const rx = 1500 + (Math.random()-0.5) * 1000; 
+        const ry = 1500 + (Math.random()-0.5) * 800; 
         
         t.style.left = rx + 'px';
         t.style.top = ry + 'px';
         world.appendChild(t);
+
+        // Refleks Modu İçin Zamanlayıcı
+        if (gameModeSelect.value === 'reflex') {
+            clearTimeout(reflexTimeout);
+            const difficultyTime = parseInt(difficultySelect.value); // Kolay 1200ms, Zor 450ms
+            
+            reflexTimeout = setTimeout(() => {
+                if(t.parentNode && gameState === 'playing') {
+                    t.remove();
+                    combo = 0; // Vuramadığı için combo sıfırlanır
+                    updateStats();
+                    spawn();
+                }
+            }, difficultyTime);
+        }
     }
 
     document.addEventListener('mousemove', (e) => {
@@ -400,7 +435,6 @@
         }
     });
 
-    // VURUŞ VE COMBO MANTIĞI
     document.addEventListener('mousedown', () => {
         if (gameState !== 'playing' || gameModeSelect.value === 'tracking') return;
         shots++;
@@ -414,17 +448,20 @@
                 hitDetected = true;
                 hits++; score++;
                 t.remove();
+                
+                // Refleks modundaysa zamanlayıcıyı durdur
+                if (gameModeSelect.value === 'reflex') clearTimeout(reflexTimeout);
+                
                 spawn();
             }
         });
         
-        // Combo Sistemi
         if (hitDetected) {
             combo++;
             if (combo > maxCombo) maxCombo = combo;
             showComboFeedback();
         } else {
-            combo = 0; // Iskaladığında combo sıfırlanır
+            combo = 0; 
         }
         
         updateStats();
@@ -442,7 +479,6 @@
             comboTextPopup.style.opacity = 1;
             comboTextPopup.style.transform = "translateX(-50%) scale(1.5)";
             
-            // Ekstra Skor Bonusu
             score += 2; 
             
             setTimeout(() => {
@@ -458,13 +494,11 @@
         comboHudText.innerText = combo + "x";
     }
 
-    // OYUN DÖNGÜSÜ
     let lastTimeUpdate = Date.now();
     
     function gameTick() {
         if (gameState !== 'playing') return;
         
-        // Süre Kontrolü
         if (maxTime > 0) {
             let now = Date.now();
             if (now - lastTimeUpdate >= 1000) {
@@ -479,13 +513,13 @@
             const s = (timeLeft % 60).toString().padStart(2, '0');
             timerText.innerText = `${m}:${s}`;
         } else {
-            timerText.innerText = "∞"; // Sınırsız
+            timerText.innerText = "∞"; 
         }
 
         const speed = parseInt(document.getElementById('speed').value);
         const mode = gameModeSelect.value;
 
-        // Tracking (Takip)
+        // Tracking (Takip) Hareket Sistemi
         if (mode === 'tracking') {
             const t = document.querySelector('#world .target');
             if (t) {
@@ -502,37 +536,8 @@
                 }
             }
         }
-
-        // Flick (Kaçış)
-        if (mode === 'flick') {
-            document.querySelectorAll('#world .target').forEach(t => {
-                const r = t.getBoundingClientRect();
-                const cx = window.innerWidth / 2;
-                const cy = window.innerHeight / 2;
-                const tx = r.left + r.width / 2;
-                const ty = r.top + r.height / 2;
-                const dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2));
-
-                if (dist < 150) { 
-                    let currentX = parseFloat(t.style.left);
-                    let currentY = parseFloat(t.style.top);
-                    let dirX = (tx - cx) / dist;
-                    let dirY = (ty - cy) / dist;
-                    let angle = Math.atan2(dirY, dirX) + (Math.random() - 0.5); 
-                    
-                    let newX = currentX + Math.cos(angle) * speed * 6;
-                    let newY = currentY + Math.sin(angle) * speed * 6;
-
-                    if(newX < 1100) newX = 1100 + Math.random() * 50; 
-                    if(newX > 1900) newX = 1900 - Math.random() * 50;
-                    if(newY < 1200) newY = 1200 + Math.random() * 50; 
-                    if(newY > 1800) newY = 1800 - Math.random() * 50;
-
-                    t.style.left = newX + 'px';
-                    t.style.top = newY + 'px';
-                }
-            });
-        }
+        
+        // Klasik ve Refleks Modlarında hedefler artık hareket etmiyor.
     }
 
 </script>
