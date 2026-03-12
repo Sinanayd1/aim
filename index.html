@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Aim Trainer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #ui-panel {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            z-index: 10;
+        }
+
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 90vh;
+            cursor: crosshair;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 50px;
+            height: 60px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            transition: all 0.1s ease-out; /* Hareket yumuşaklığı */
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Balonun altındaki ip ucu */
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 22px;
+            border-left: 3px solid transparent;
+            border-right: 3px solid transparent;
+            border-top: 10px solid #ff4d4d;
+        }
+
+        input[type="range"] {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <div>Skor: <span id="score">0</span></div>
+        <div>
+            Hassasiyet (Kaçış Hızı): 
+            <input type="range" id="sensitivity" min="50" max="300" value="150">
+            <span id="sens-value">150</span>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div id="target" class="balloon"></div>
+    </div>
+
+    <script>
+        const target = document.getElementById('target');
+        const gameArea = document.getElementById('game-area');
+        const scoreDisplay = document.getElementById('score');
+        const sensInput = document.getElementById('sensitivity');
+        const sensValue = document.getElementById('sens-value');
+
+        let score = 0;
+
+        // Rastgele konum fonksiyonu
+        function moveTarget() {
+            const maxX = gameArea.clientWidth - 60;
+            const maxY = gameArea.clientHeight - 70;
+            
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+            
+            target.style.left = randomX + 'px';
+            target.style.top = randomY + 'px';
+        }
+
+        // Mouse balona yaklaştığında kaçma mantığı
+        gameArea.addEventListener('mousemove', (e) => {
+            const rect = target.getBoundingClientRect();
+            const balloonX = rect.left + rect.width / 2;
+            const balloonY = rect.top + rect.height / 2;
+
+            // Mouse ile balon arasındaki mesafeyi hesapla
+            const distance = Math.sqrt(
+                Math.pow(e.clientX - balloonX, 2) + 
+                Math.pow(e.clientY - balloonY, 2)
+            );
+
+            // Hassasiyet değerine göre kaçma mesafesi
+            const threshold = parseInt(sensInput.value);
+            sensValue.innerText = threshold;
+
+            if (distance < threshold) {
+                moveTarget();
+            }
+        });
+
+        // Balona tıklayınca skor artır
+        target.addEventListener('mousedown', () => {
+            score++;
+            scoreDisplay.innerText = score;
+            target.style.backgroundColor = 'yellow'; // Bildirim amaçlı renk değişimi
+            
+            setTimeout(() => {
+                target.style.backgroundColor = '#ff4d4d';
+                moveTarget();
+            }, 100);
+        });
+
+        // İlk başlatma
+        moveTarget();
+    </script>
+</body>
+</html>
 
