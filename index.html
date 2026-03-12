@@ -2,134 +2,168 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gelişmiş Aim Trainer</title>
+    <title>FPS Aim Trainer - GitHub Pages</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #1a1a1a;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #ui-panel {
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            z-index: 10;
-        }
-
-        #game-area {
-            position: relative;
+        body { margin: 0; overflow: hidden; background-color: #222; font-family: sans-serif; color: white; }
+        
+        /* Oyun Alanı */
+        #game-container {
             width: 100vw;
-            height: 90vh;
-            cursor: crosshair;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle, #333 0%, #111 100%);
+            perspective: 1000px;
         }
 
+        /* Nişangah (Crosshair) */
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 20px; height: 20px;
+            border: 2px solid #0f0;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Silah Görseli (Basit Dikdörtgen) */
+        #weapon {
+            position: absolute;
+            bottom: 0; right: 20%;
+            width: 100px; height: 200px;
+            background: #444;
+            border-radius: 10px 10px 0 0;
+            transform: rotate(-5deg);
+            transition: transform 0.1s;
+            z-index: 90;
+        }
+
+        /* Balon */
         .balloon {
             position: absolute;
-            width: 50px;
-            height: 60px;
-            background-color: #ff4d4d;
+            width: 60px; height: 80px;
+            background: #e74c3c;
             border-radius: 50%;
-            transition: all 0.1s ease-out; /* Hareket yumuşaklığı */
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            cursor: none;
+            transition: top 0.1s linear, left 0.1s linear;
         }
 
-        /* Balonun altındaki ip ucu */
-        .balloon::after {
-            content: '';
+        /* Kontrol Paneli */
+        #ui {
             position: absolute;
-            bottom: -10px;
-            left: 22px;
-            border-left: 3px solid transparent;
-            border-right: 3px solid transparent;
-            border-top: 10px solid #ff4d4d;
+            top: 10px; left: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 110;
         }
 
-        input[type="range"] {
-            cursor: pointer;
-        }
+        .setting-row { margin-bottom: 10px; }
+        input { width: 100px; }
     </style>
 </head>
 <body>
 
-    <div id="ui-panel">
-        <div>Skor: <span id="score">0</span></div>
-        <div>
-            Hassasiyet (Kaçış Hızı): 
-            <input type="range" id="sensitivity" min="50" max="300" value="150">
-            <span id="sens-value">150</span>
-        </div>
+<div id="ui">
+    <div class="setting-row">Skor: <span id="score">0</span></div>
+    <div class="setting-row">
+        Fare Hassasiyeti: <input type="range" id="sens" min="0.1" max="5" step="0.1" value="1"><br>
+        <small>(Düşük = Daha yavaş dönüş)</small>
     </div>
-
-    <div id="game-area">
-        <div id="target" class="balloon"></div>
+    <div class="setting-row">
+        Balon Kaçış Hızı: <input type="range" id="speed" min="1" max="100" value="50"><br>
+        <small>(1 = Çok yavaş kaçar)</small>
     </div>
+    <p style="font-size: 12px;">*Başlamak için ekrana tıkla.<br>*Çıkmak için ESC.</p>
+</div>
 
-    <script>
-        const target = document.getElementById('target');
-        const gameArea = document.getElementById('game-area');
-        const scoreDisplay = document.getElementById('score');
-        const sensInput = document.getElementById('sensitivity');
-        const sensValue = document.getElementById('sens-value');
+<div id="game-container">
+    <div id="crosshair"></div>
+    <div id="weapon"></div>
+    <div id="target" class="balloon"></div>
+</div>
 
-        let score = 0;
+<script>
+    const container = document.getElementById('game-container');
+    const target = document.getElementById('target');
+    const weapon = document.getElementById('weapon');
+    const scoreText = document.getElementById('score');
+    const sensInput = document.getElementById('sens');
+    const speedInput = document.getElementById('speed');
 
-        // Rastgele konum fonksiyonu
-        function moveTarget() {
-            const maxX = gameArea.clientWidth - 60;
-            const maxY = gameArea.clientHeight - 70;
-            
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
-            
-            target.style.left = randomX + 'px';
-            target.style.top = randomY + 'px';
-        }
+    let score = 0;
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    
+    // Balonu rastgele yere ışınla
+    function spawnBalloon() {
+        targetX = Math.random() * (window.innerWidth - 100) + 50;
+        targetY = Math.random() * (window.innerHeight - 150) + 50;
+        target.style.left = targetX + 'px';
+        target.style.top = targetY + 'px';
+    }
 
-        // Mouse balona yaklaştığında kaçma mantığı
-        gameArea.addEventListener('mousemove', (e) => {
+    // Pointer Lock (FPS Modu) Başlatma
+    container.addEventListener('click', () => {
+        container.requestPointerLock();
+    });
+
+    // Mouse Hareket Takibi
+    document.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === container) {
+            let movementX = e.movementX * sensInput.value;
+            let movementY = e.movementY * sensInput.value;
+
+            // Silahın hafif oynaması (Sallanma efekti)
+            weapon.style.transform = `translateX(${-movementX/2}px) rotate(${-5 - movementX/10}deg)`;
+
+            // Balonun "kaçma" mantığı
+            // Eğer nişangah balona yaklaşırsa balon hareket eder
             const rect = target.getBoundingClientRect();
-            const balloonX = rect.left + rect.width / 2;
-            const balloonY = rect.top + rect.height / 2;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
 
-            // Mouse ile balon arasındaki mesafeyi hesapla
-            const distance = Math.sqrt(
-                Math.pow(e.clientX - balloonX, 2) + 
-                Math.pow(e.clientY - balloonY, 2)
-            );
+            const dist = Math.sqrt(Math.pow(centerX - (rect.left + 30), 2) + Math.pow(centerY - (rect.top + 40), 2));
 
-            // Hassasiyet değerine göre kaçma mesafesi
-            const threshold = parseInt(sensInput.value);
-            sensValue.innerText = threshold;
-
-            if (distance < threshold) {
-                moveTarget();
+            // Balon hızı/hassasiyeti kontrolü
+            if (dist < 100) {
+                let escapeSpeed = parseInt(speedInput.value);
+                targetX += (Math.random() - 0.5) * escapeSpeed * 2;
+                targetY += (Math.random() - 0.5) * escapeSpeed * 2;
+                
+                // Ekran dışına çıkmasını engelle
+                targetX = Math.max(50, Math.min(window.innerWidth - 100, targetX));
+                targetY = Math.max(50, Math.min(window.innerHeight - 150, targetY));
+                
+                target.style.left = targetX + 'px';
+                target.style.top = targetY + 'px';
             }
-        });
+        }
+    });
 
-        // Balona tıklayınca skor artır
-        target.addEventListener('mousedown', () => {
-            score++;
-            scoreDisplay.innerText = score;
-            target.style.backgroundColor = 'yellow'; // Bildirim amaçlı renk değişimi
-            
-            setTimeout(() => {
-                target.style.backgroundColor = '#ff4d4d';
-                moveTarget();
-            }, 100);
-        });
+    // Ateş Etme (Tıklama)
+    document.addEventListener('mousedown', () => {
+        if (document.pointerLockElement === container) {
+            // Silah tepme efekti
+            weapon.style.bottom = "-20px";
+            setTimeout(() => weapon.style.bottom = "0", 50);
 
-        // İlk başlatma
-        moveTarget();
-    </script>
+            const rect = target.getBoundingClientRect();
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            // Eğer nişangah balonun üzerindeyse
+            if (centerX >= rect.left && centerX <= rect.right && 
+                centerY >= rect.top && centerY <= rect.bottom) {
+                score++;
+                scoreText.innerText = score;
+                spawnBalloon();
+            }
+        }
+    });
+
+    spawnBalloon();
+</script>
 </body>
 </html>
-
