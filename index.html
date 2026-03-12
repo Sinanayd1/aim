@@ -2,75 +2,85 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Valorant Aim Trainer - Stabil Sürüm</title>
+    <title>Sinan Aydoğan Aim Trainer</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0f1923; font-family: sans-serif; color: white; }
+        body { margin: 0; overflow: hidden; background-color: #0f1923; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        /* Kamera Görüş Alanı */
         #viewport {
             width: 100vw; height: 100vh;
+            perspective: 1200px; /* Karakteri geride tutma hissi (FOV) */
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
-            position: relative;
         }
 
         /* Oyun Dünyası */
         #world {
             position: absolute;
-            width: 5000px; height: 5000px;
-            background: radial-gradient(circle, #1f2933 2px, transparent 2px);
+            width: 3000px; height: 2000px;
+            background: 
+                radial-gradient(circle, #1f2933 2px, transparent 2px);
             background-size: 80px 80px;
             transform-style: preserve-3d;
-            will-change: transform;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* ARTİ NİŞANGAH */
+        /* Arka Plan Yazısı */
+        #watermark {
+            position: absolute;
+            font-size: 150px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.03); /* Çok hafif şeffaf */
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            text-transform: uppercase;
+        }
+
+        /* Artı Nişangah */
         #crosshair {
             position: fixed; top: 50%; left: 50%;
-            width: 20px; height: 20px;
+            width: 24px; height: 24px;
             transform: translate(-50%, -50%);
             z-index: 100; pointer-events: none;
         }
-        .ch-h { position: absolute; top: 9px; left: 0; width: 20px; height: 2px; background: #0f0; box-shadow: 0 0 2px #000; }
-        .ch-v { position: absolute; left: 9px; top: 0; width: 2px; height: 20px; background: #0f0; box-shadow: 0 0 2px #000; }
+        .ch-h { position: absolute; top: 11px; width: 24px; height: 2px; background: #0f0; box-shadow: 0 0 3px #000; }
+        .ch-v { position: absolute; left: 11px; height: 24px; width: 2px; background: #0f0; box-shadow: 0 0 3px #000; }
 
-        /* Silah */
+        /* Silah (Geride ve Daha Sağda) */
         #weapon {
-            position: fixed; bottom: -20px; right: 20%;
-            width: 140px; height: 280px;
-            background: #2a2a2a; border: 2px solid #111;
-            border-radius: 20px 20px 0 0; z-index: 90;
+            position: fixed; bottom: -30px; right: 15%;
+            width: 180px; height: 350px;
+            background: linear-gradient(to top, #050505, #1a1a1a);
+            border-radius: 30px 30px 0 0; z-index: 90;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* Balon */
         .balloon {
             position: absolute;
-            width: 50px; height: 65px;
+            width: 50px; height: 70px;
             background: #ff4655;
             border-radius: 50%;
-            box-shadow: 0 0 20px rgba(255, 70, 85, 0.4);
+            box-shadow: 0 0 30px rgba(255, 70, 85, 0.4);
+            transition: transform 0.1s;
         }
 
-        /* Arayüz */
         #ui {
             position: fixed; top: 20px; left: 20px;
             background: rgba(15, 25, 35, 0.9);
-            padding: 15px; border-left: 4px solid #ff4655; z-index: 200;
+            padding: 20px; border-left: 5px solid #ff4655; z-index: 200;
         }
-        input { width: 80px; background: #333; color: white; border: 1px solid #555; margin: 5px; padding: 3px; }
-        label { font-size: 12px; }
+        input { width: 70px; background: #333; color: white; border: 1px solid #555; padding: 5px; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div style="font-size: 20px; font-weight: bold;">SKOR: <span id="score">0</span></div>
-    <hr style="border: 0.5px solid #444;">
+    <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">SKOR: <span id="score">0</span></div>
+    <hr style="border: 0.5px solid #444; margin: 15px 0;">
     <label>Valorant Sens:</label>
-    <input type="number" id="valSens" value="0.5" step="0.1"><br>
+    <input type="number" id="valSens" value="0.5" step="0.1"><br><br>
     <label>Kaçış Hızı:</label>
-    <input type="range" id="speed" min="1" max="15" value="5">
-    <p style="font-size: 10px; color: #aaa;">Tıkla: Başla | ESC: Çık</p>
+    <input type="range" id="speed" min="1" max="20" value="8">
 </div>
 
 <div id="crosshair"><div class="ch-h"></div><div class="ch-v"></div></div>
@@ -78,6 +88,7 @@
 
 <div id="viewport">
     <div id="world">
+        <div id="watermark">SINAN AYDOĞAN AIM TRAINER</div>
         <div id="target" class="balloon"></div>
     </div>
 </div>
@@ -91,40 +102,43 @@
     const speedInput = document.getElementById('speed');
 
     let score = 0;
-    let viewX = -2500 + (window.innerWidth / 2);
-    let viewY = -2500 + (window.innerHeight / 2);
+    // Dünyanın merkezi
+    let viewX = -1500 + (window.innerWidth / 2);
+    let viewY = -1000 + (window.innerHeight / 2);
 
-    // Hareket Sistemi
     document.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === document.body) {
             let sens = parseFloat(valSensInput.value) || 0.5;
-            viewX -= e.movementX * sens * 2;
-            viewY -= e.movementY * sens * 2;
+            
+            // Kamera dönüşü
+            viewX -= e.movementX * sens * 1.8;
+            viewY -= e.movementY * sens * 1.8;
 
-            // Sınırlar
-            viewX = Math.max(-4500, Math.min(0, viewX));
-            viewY = Math.max(-4500, Math.min(0, viewY));
+            // Kamera Sınırları (Siyah ekrana düşmemek için)
+            viewX = Math.max(-2500, Math.min(-500, viewX));
+            viewY = Math.max(-1500, Math.min(-500, viewY));
 
             world.style.transform = `translate(${viewX}px, ${viewY}px)`;
-            weapon.style.transform = `translateX(${-e.movementX * 0.1}px) translateY(${-e.movementY * 0.1}px)`;
+            
+            // Silah tepkisi
+            weapon.style.transform = `translateX(${-e.movementX * 0.1}px) translateY(${-e.movementY * 0.1}px) rotate(${-e.movementX * 0.02}deg)`;
         }
     });
 
-    // Başlatma
     document.body.addEventListener('click', () => {
         document.body.requestPointerLock();
     });
 
-    // Yeni Balon
     function spawn() {
-        // Balonu ekranın görebileceğin orta kısımlarına atar
-        const rx = 2500 + (Math.random() - 0.5) * 1000;
-        const ry = 2500 + (Math.random() - 0.5) * 800;
+        // Balonu SİNAN AYDOĞAN yazısının civarında tutan sınırlar
+        // Bu sınırlar balonun asla kaybolmamasını sağlar
+        const rx = 1500 + (Math.random() - 0.5) * 800; 
+        const ry = 1000 + (Math.random() - 0.5) * 600;
         target.style.left = rx + 'px';
         target.style.top = ry + 'px';
+        target.style.display = "block";
     }
 
-    // Ateş Etme
     document.addEventListener('mousedown', () => {
         if (document.pointerLockElement === document.body) {
             const rect = target.getBoundingClientRect();
@@ -134,25 +148,40 @@
             if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
                 score++;
                 scoreText.innerText = score;
-                spawn();
+                target.style.display = "none";
+                setTimeout(spawn, 50);
             }
         }
     });
 
-    // Kaçma Mantığı
+    // Balon Kaçış Sistemi (Daha akıllı ve sınırları koruyan)
     setInterval(() => {
         if (document.pointerLockElement !== document.body) return;
+        
         const rect = target.getBoundingClientRect();
-        const dist = Math.sqrt(Math.pow((window.innerWidth/2) - (rect.left+25), 2) + Math.pow((window.innerHeight/2) - (rect.top+32), 2));
+        const dist = Math.sqrt(Math.pow((window.innerWidth/2) - (rect.left+25), 2) + Math.pow((window.innerHeight/2) - (rect.top+35), 2));
 
-        if (dist < 100) {
+        if (dist < 130) {
             let s = parseInt(speedInput.value);
-            target.style.left = (parseFloat(target.style.left) + (Math.random()-0.5) * s * 10) + 'px';
-            target.style.top = (parseFloat(target.style.top) + (Math.random()-0.5) * s * 10) + 'px';
+            let currX = parseFloat(target.style.left);
+            let currY = parseFloat(target.style.top);
+
+            // Kaçarken merkeze yakın durmaya zorla
+            let moveX = (Math.random() - 0.5) * s * 12;
+            let moveY = (Math.random() - 0.5) * s * 12;
+
+            // Sınır koruması: Eğer balon çok kenara giderse merkeze doğru it
+            if (currX < 1100) moveX = Math.abs(moveX);
+            if (currX > 1900) moveX = -Math.abs(moveX);
+            if (currY < 700) moveY = Math.abs(moveY);
+            if (currY > 1300) moveY = -Math.abs(moveY);
+
+            target.style.left = (currX + moveX) + 'px';
+            target.style.top = (currY + moveY) + 'px';
         }
-    }, 40);
+    }, 30);
 
     spawn();
 </script>
 </body>
-</html
+</html>
