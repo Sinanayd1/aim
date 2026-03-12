@@ -1,77 +1,80 @@
-Haklısın, son yaptığımız FOV ve mesafe ayarları balonu ekranın çok uzağına itmiş olabilir. Bu durum genellikle "Z ekseni" (derinlik) ayarının tarayıcıda yanlış hesaplanmasından kaynaklanıyor.
-
-Her şeyi en baştan, en sade ve en sağlam haline getiriyorum. Balonu tam karşına, kolayca görülebilecek bir mesafeye sabitledim ve kaçabileceği alanı iyice küçülttüm. Arka plana ismini yine ekledim.
-
-Lütfen bu kodu denediğinde balonu görebiliyor musun kontrol et:
-
-HTML
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sinan Aydoğan Aim Trainer - Reset</title>
+    <title>Sinan Aydoğan Aim Trainer - Pro</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #0d1117; font-family: sans-serif; color: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background-color: #0d1117; font-family: sans-serif; color: white; }
         
         #game-container {
             width: 100vw; height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; perspective: 1000px;
+            overflow: hidden;
         }
 
-        /* Oyun Dünyası */
         #world {
             position: absolute;
-            width: 2000px; height: 2000px;
-            background: radial-gradient(circle, #21262d 1px, transparent 1px);
-            background-size: 50px 50px;
+            width: 3000px; height: 3000px;
+            background: radial-gradient(circle, #21262d 1.5px, transparent 1.5px);
+            background-size: 60px 60px;
             display: flex; align-items: center; justify-content: center;
         }
 
         #watermark {
             position: absolute;
-            font-size: 80px; font-weight: 900;
-            color: rgba(255, 255, 255, 0.05);
+            font-size: 100px; font-weight: 900;
+            color: rgba(255, 255, 255, 0.04);
             pointer-events: none; user-select: none;
             text-transform: uppercase;
         }
 
-        /* Artı Nişangah */
+        /* BEYAZ ARTI NİŞANGAH */
         #crosshair {
             position: fixed; top: 50%; left: 50%;
-            width: 20px; height: 20px;
+            width: 22px; height: 22px;
             transform: translate(-50%, -50%);
             z-index: 100; pointer-events: none;
         }
-        .ch-h { position: absolute; top: 9px; width: 20px; height: 2px; background: #0f0; }
-        .ch-v { position: absolute; left: 9px; height: 20px; width: 2px; background: #0f0; }
+        .ch-h { position: absolute; top: 10px; width: 22px; height: 2px; background: #ffffff; box-shadow: 0 0 2px #000; }
+        .ch-v { position: absolute; left: 10px; height: 22px; width: 2px; background: #ffffff; box-shadow: 0 0 2px #000; }
 
-        /* Balon */
-        .balloon {
-            position: absolute;
-            width: 50px; height: 70px;
-            background: #ff4655;
-            border-radius: 50%;
-            z-index: 10;
-        }
+        .target { position: absolute; cursor: none; z-index: 10; will-change: top, left; }
+        .balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
+        .square { width: 30px; height: 30px; background: #00f2ff; border: 2px solid white; }
+        .tracking { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; } /* Takip modu için sarı balon */
 
         #ui {
             position: fixed; top: 20px; left: 20px;
-            background: rgba(13, 17, 23, 0.9);
-            padding: 15px; border: 1px solid #30363d; z-index: 200;
+            background: rgba(13, 17, 23, 0.95);
+            padding: 20px; border: 1px solid #30363d; border-left: 4px solid #ffffff; z-index: 200;
         }
-        input { width: 60px; background: #0d1117; color: white; border: 1px solid #30363d; }
+        select, input { 
+            width: 100%; background: #21262d; color: white; border: 1px solid #484f58; 
+            padding: 5px; margin: 5px 0 10px 0; border-radius: 4px;
+        }
+        label { font-size: 11px; font-weight: bold; color: #8b949e; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div style="font-size: 18px; font-weight: bold;">SKOR: <span id="score">0</span></div>
-    <hr style="border: 0.5px solid #30363d; margin: 10px 0;">
-    <label>VAL SENS:</label>
-    <input type="number" id="valSens" value="0.5" step="0.1"><br><br>
-    <label>HIZ:</label>
-    <input type="range" id="speed" min="1" max="15" value="5">
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color:#ffffff;">SKOR: <span id="score">0</span></div>
+    
+    <label>Mod Seçimi:</label>
+    <select id="gameMode">
+        <option value="balloon">Kaçan Balon (Flick)</option>
+        <option value="grid">Hızlı Kare (Speed)</option>
+        <option value="tracking">Takip Etme (Tracking)</option>
+    </select>
+
+    <label>Valorant Sens:</label>
+    <input type="number" id="valSens" value="0.5" step="0.1">
+
+    <label>Hareket/Kaçış Hızı:</label>
+    <input type="range" id="speed" min="1" max="25" value="8">
+    
+    <p id="mode-desc" style="font-size: 10px; color: #6e7681; margin-top: 5px;">Tıkla: Başla | ESC: Çık</p>
 </div>
 
 <div id="crosshair"><div class="ch-h"></div><div class="ch-v"></div></div>
@@ -79,7 +82,7 @@ HTML
 <div id="game-container">
     <div id="world">
         <div id="watermark">SINAN AYDOĞAN</div>
-        <div id="target" class="balloon"></div>
+        <div id="target" class="target balloon"></div>
     </div>
 </div>
 
@@ -89,42 +92,53 @@ HTML
     const scoreText = document.getElementById('score');
     const valSensInput = document.getElementById('valSens');
     const speedInput = document.getElementById('speed');
+    const gameModeSelect = document.getElementById('gameMode');
 
     let score = 0;
     let viewX = 0;
     let viewY = 0;
 
+    // Tracking Modu Değişkenleri
+    let targetX = 1500;
+    let targetY = 1500;
+    let angle = 0;
+
     // Kamera Hareket Sistemi
     document.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === document.body) {
             let sens = parseFloat(valSensInput.value) || 0.5;
-            
             viewX -= e.movementX * sens * 1.5;
             viewY -= e.movementY * sens * 1.5;
 
-            // Kamera sınırlarını daralttım ki dünyadan kopma
-            viewX = Math.max(-800, Math.min(800, viewX));
-            viewY = Math.max(-600, Math.min(600, viewY));
+            viewX = Math.max(-1000, Math.min(1000, viewX));
+            viewY = Math.max(-800, Math.min(800, viewY));
 
             world.style.transform = `translate(${viewX}px, ${viewY}px)`;
         }
     });
 
     document.body.addEventListener('click', () => {
-        document.body.requestPointerLock();
+        if (document.pointerLockElement !== document.body) {
+            document.body.requestPointerLock();
+        }
     });
 
-    // Balonun konumu (Dünya merkezine yakın tutuyoruz)
     function spawn() {
-        const rx = 1000 + (Math.random() - 0.5) * 500; 
-        const ry = 1000 + (Math.random() - 0.5) * 400;
-        target.style.left = rx + 'px';
-        target.style.top = ry + 'px';
+        const mode = gameModeSelect.value;
+        target.className = "target " + (mode === "grid" ? "square" : (mode === "tracking" ? "balloon tracking" : "balloon"));
+        
+        targetX = 1500 + (Math.random() - 0.5) * 600; 
+        targetY = 1500 + (Math.random() - 0.5) * 400;
+        
+        target.style.left = targetX + 'px';
+        target.style.top = targetY + 'px';
     }
 
-    // Vuruş Kontrolü
+    // Ateş Etme (Sadece Click Modlarında)
     document.addEventListener('mousedown', () => {
         if (document.pointerLockElement === document.body) {
+            if (gameModeSelect.value === "tracking") return; // Tracking modunda tıklamaya gerek yok
+
             const rect = target.getBoundingClientRect();
             const cx = window.innerWidth / 2;
             const cy = window.innerHeight / 2;
@@ -137,28 +151,56 @@ HTML
         }
     });
 
-    // Kaçış Sistemi
+    // Ana Oyun Döngüsü (30ms'de bir çalışır)
     setInterval(() => {
         if (document.pointerLockElement !== document.body) return;
-        const rect = target.getBoundingClientRect();
-        const dist = Math.sqrt(Math.pow((window.innerWidth/2) - (rect.left+25), 2) + Math.pow((window.innerHeight/2) - (rect.top+35), 2));
+        const mode = gameModeSelect.value;
+        const s = parseInt(speedInput.value);
 
-        if (dist < 100) {
-            let s = parseInt(speedInput.value);
-            let cx = parseFloat(target.style.left);
-            let cy = parseFloat(target.style.top);
-            
-            // Merkeze geri itme (Kaybolmayı önler)
-            let mx = (Math.random() - 0.5) * s * 8;
-            let my = (Math.random() - 0.5) * s * 8;
-            
-            if (cx < 800) mx = 5; if (cx > 1200) mx = -5;
-            if (cy < 800) my = 5; if (cy > 1200) my = -5;
+        if (mode === "tracking") {
+            // YUMUŞAK HAREKET MANTIĞI (SÜZÜLME)
+            angle += 0.02 * s; 
+            targetX += Math.sin(angle) * (s * 0.5);
+            targetY += Math.cos(angle * 0.7) * (s * 0.4);
 
-            target.style.left = (cx + mx) + 'px';
-            target.style.top = (cy + my) + 'px';
+            // Sınır Koruması
+            if (targetX < 1200 || targetX > 1800) angle += Math.PI;
+            if (targetY < 1200 || targetY > 1800) angle += Math.PI;
+
+            target.style.left = targetX + 'px';
+            target.style.top = targetY + 'px';
+
+            // Takip Kontrolü (Skor için üstünde durma)
+            const rect = target.getBoundingClientRect();
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
+                score += 0.1; // Üstünde durdukça puan artar
+                scoreText.innerText = Math.floor(score);
+            }
+
+        } else if (mode === "balloon") {
+            // KAÇAN BALON MANTIĞI
+            const rect = target.getBoundingClientRect();
+            const dist = Math.sqrt(Math.pow((window.innerWidth/2) - (rect.left+22), 2) + Math.pow((window.innerHeight/2) - (rect.top+30), 2));
+            if (dist < 120) {
+                let currX = parseFloat(target.style.left);
+                let currY = parseFloat(target.style.top);
+                let mx = (Math.random() - 0.5) * s * 10;
+                let my = (Math.random() - 0.5) * s * 10;
+                if (currX < 1200) mx = Math.abs(mx); if (currX > 1800) mx = -Math.abs(mx);
+                if (currY < 1200) my = Math.abs(my); if (currY > 1800) my = -Math.abs(my);
+                target.style.left = (currX + mx) + 'px';
+                target.style.top = (currY + my) + 'px';
+            }
         }
-    }, 40);
+    }, 30);
+
+    gameModeSelect.addEventListener('change', () => {
+        score = 0;
+        scoreText.innerText = 0;
+        spawn();
+    });
 
     spawn();
 </script>
