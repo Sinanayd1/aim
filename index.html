@@ -2,10 +2,10 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sinan Aydoğan Aim Trainer - Ultimate</title>
+    <title>Sinan Aydoğan Aim Trainer - Pro</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background-color: #0d1117; font-family: sans-serif; color: white; }
+        body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; }
         
         #game-container {
             width: 100vw; height: 100vh;
@@ -13,113 +13,136 @@
             overflow: hidden;
         }
 
+        /* Dinamik Arka Planlar */
         #world {
             position: absolute;
             width: 4000px; height: 3000px;
-            background: radial-gradient(circle, #21262d 1.5px, transparent 1.5px);
-            background-size: 60px 60px;
             display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s;
         }
+
+        /* Arka Plan Seçenekleri */
+        .bg-dots { background: radial-gradient(circle, #21262d 2px, transparent 2px); background-size: 60px 60px; }
+        .bg-grid { background-image: linear-gradient(#161b22 1px, transparent 1px), linear-gradient(90deg, #161b22 1px, transparent 1px); background-size: 50px 50px; }
+        .bg-dark { background-color: #050505; }
 
         #watermark {
             position: absolute;
-            font-size: 100px; font-weight: 900;
-            color: rgba(255, 255, 255, 0.04);
+            font-size: 120px; font-weight: 900;
+            color: rgba(255, 255, 255, 0.03);
             pointer-events: none; user-select: none;
             text-transform: uppercase;
+            text-align: center;
         }
 
-        /* BEYAZ ARTI NİŞANGAH (Dinamik Boyutlu) */
+        /* NİŞANGAH SİSTEMİ */
         #crosshair {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             z-index: 100; pointer-events: none;
-            display: flex; align-items: center; justify-content: center;
         }
-        .ch-h { position: absolute; background: #ffffff; box-shadow: 0 0 2px #000; }
-        .ch-v { position: absolute; background: #ffffff; box-shadow: 0 0 2px #000; }
+        .ch-part { background: #fff; box-shadow: 0 0 2px #000; position: absolute; }
 
-        .target { position: absolute; cursor: none; z-index: 10; will-change: top, left; }
-        .balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
-        .small-target { width: 25px; height: 35px; background: #ff4655; border-radius: 50%; }
-        .square { width: 30px; height: 30px; background: #00f2ff; border: 2px solid white; }
-        .tracking { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; }
+        /* HEDEF ÇEŞİTLERİ */
+        .target { position: absolute; z-index: 10; cursor: none; }
+        .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; }
+        .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px #00f2ff; }
+        .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; }
 
+        /* ARAYÜZ */
         #ui {
             position: fixed; top: 20px; left: 20px;
             background: rgba(13, 17, 23, 0.95);
-            padding: 15px; border: 1px solid #30363d; border-left: 4px solid #ffffff; z-index: 200;
-            width: 220px;
+            padding: 15px; border: 1px solid #30363d; border-left: 4px solid #fff; z-index: 200;
+            width: 240px; font-size: 12px;
         }
-        select, input { 
-            width: 100%; background: #21262d; color: white; border: 1px solid #484f58; 
-            padding: 4px; margin: 3px 0 10px 0; border-radius: 4px; font-size: 12px;
+        #stats-panel {
+            margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;
         }
-        label { font-size: 10px; font-weight: bold; color: #8b949e; text-transform: uppercase; }
+        select, input { width: 100%; background: #21262d; color: white; border: 1px solid #484f58; padding: 5px; margin: 5px 0 10px 0; }
+        label { font-weight: bold; color: #8b949e; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">SKOR: <span id="score">0</span></div>
+    <div id="stats-panel">
+        <div>SKOR: <span id="score">0</span></div>
+        <div>SÜRE: <span id="timer">00:00</span></div>
+        <div>İSABET: <span id="accuracy">100</span>%</div>
+    </div>
     
-    <label>Mod Seçimi:</label>
+    <label>OYUN MODU:</label>
     <select id="gameMode">
-        <option value="balloon">Kaçan Balon</option>
-        <option value="grid">Hızlı Kare (Grid)</option>
-        <option value="tracking">Uzun Takip (Tracking)</option>
-        <option value="multi">Çoklu Küçük Balon</option>
+        <option value="balloon">Klasik Balon</option>
+        <option value="tracking">Takip Etme</option>
+        <option value="multi">Çoklu Hedef</option>
     </select>
 
-    <label>Valorant Sens:</label>
+    <label>HEDEF TİPİ:</label>
+    <select id="targetType">
+        <option value="type-balloon">Kırmızı Balon</option>
+        <option value="type-orb">Mavi Küre</option>
+        <option value="type-cube">Sarı Küp</option>
+    </select>
+
+    <label>ARKA PLAN:</label>
+    <select id="bgType">
+        <option value="bg-dots">Noktalı</option>
+        <option value="bg-grid">Izgara</option>
+        <option value="bg-dark">Saf Karanlık</option>
+    </select>
+
+    <label>NİŞANGAH TİPİ:</label>
+    <select id="chType">
+        <option value="cross">Artı (+)</option>
+        <option value="dot">Nokta (.)</option>
+        <option value="circle">Daire (o)</option>
+    </select>
+
+    <label>VAL SENS:</label>
     <input type="number" id="valSens" value="0.5" step="0.1">
 
-    <label>Nişangah Boyutu:</label>
-    <input type="range" id="chSize" min="5" max="40" value="20">
-
-    <label>Hareket Hızı:</label>
-    <input type="range" id="speed" min="1" max="25" value="10">
-    
-    <p style="font-size: 9px; color: #6e7681;">Click: Başla | ESC: Çık</p>
+    <button id="resetBtn" style="width:100%; padding:8px; background:#ff4655; border:none; color:white; font-weight:bold; cursor:pointer;">REKORU SIFIRLA</button>
 </div>
 
-<div id="crosshair">
-    <div id="ch-h" class="ch-h"></div>
-    <div id="ch-v" class="ch-v"></div>
-</div>
+<div id="crosshair" id="ch-box"></div>
 
 <div id="game-container">
-    <div id="world">
-        <div id="watermark">SINAN AYDOĞAN</div>
-        </div>
+    <div id="world" class="bg-dots">
+        <div id="watermark">SINAN AYDOĞAN<br>AIM TRAINER</div>
+    </div>
 </div>
 
 <script>
     const world = document.getElementById('world');
     const scoreText = document.getElementById('score');
+    const timerText = document.getElementById('timer');
+    const accText = document.getElementById('accuracy');
     const valSensInput = document.getElementById('valSens');
-    const speedInput = document.getElementById('speed');
-    const chSizeInput = document.getElementById('chSize');
-    const gameModeSelect = document.getElementById('gameMode');
-    const chH = document.getElementById('ch-h');
-    const chV = document.getElementById('ch-v');
-
-    let score = 0;
+    const chBox = document.getElementById('crosshair');
+    
+    let score = 0, shots = 0, hits = 0, startTime = Date.now();
     let viewX = 0, viewY = 0;
-    let trackingX = 1500, trackingY = 1500, angle = 0;
 
-    // Nişangah Boyutu Güncelleme
+    // NİŞANGAH SEÇİMİ
     function updateCrosshair() {
-        const size = chSizeInput.value;
-        chH.style.width = size + 'px';
-        chH.style.height = '2px';
-        chV.style.height = size + 'px';
-        chV.style.width = '2px';
+        chBox.innerHTML = '';
+        const type = document.getElementById('chType').value;
+        if(type === 'cross') {
+            chBox.innerHTML = '<div class="ch-part" style="width:20px; height:2px; left:-10px; top:-1px;"></div><div class="ch-part" style="width:2px; height:20px; left:-1px; top:-10px;"></div>';
+        } else if(type === 'dot') {
+            chBox.innerHTML = '<div class="ch-part" style="width:6px; height:6px; left:-3px; top:-3px; border-radius:50%;"></div>';
+        } else {
+            chBox.innerHTML = '<div class="ch-part" style="width:16px; height:16px; left:-8px; top:-8px; border-radius:50%; background:transparent; border:2px solid #fff;"></div>';
+        }
     }
-    chSizeInput.addEventListener('input', updateCrosshair);
-    updateCrosshair();
 
-    // Kamera Sistemi
+    // ARKA PLAN VE MOD GÜNCELLEME
+    document.getElementById('bgType').onchange = (e) => world.className = e.target.value;
+    document.getElementById('chType').onchange = updateCrosshair;
+
+    // KAMERA
     document.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === document.body) {
             let sens = parseFloat(valSensInput.value) || 0.5;
@@ -131,82 +154,56 @@
         }
     });
 
-    document.body.addEventListener('click', () => {
-        document.body.requestPointerLock();
-    });
+    document.body.onclick = () => document.body.requestPointerLock();
 
-    function createTarget(isMulti = false) {
+    function spawn() {
         const t = document.createElement('div');
-        t.className = "target " + (gameModeSelect.value === "grid" ? "square" : (gameModeSelect.value === "tracking" ? "balloon tracking" : (isMulti ? "small-target" : "balloon")));
-        
-        const rx = 1500 + (Math.random() - 0.5) * (isMulti ? 1200 : 800); 
-        const ry = 1500 + (Math.random() - 0.5) * (isMulti ? 800 : 600);
-        
-        t.style.left = rx + 'px';
-        t.style.top = ry + 'px';
-        
-        t.onclick = (e) => hitTarget(t);
+        const type = document.getElementById('targetType').value;
+        t.className = `target ${type}`;
+        t.style.left = (1500 + (Math.random()-0.5)*1000) + 'px';
+        t.style.top = (1500 + (Math.random()-0.5)*800) + 'px';
         world.appendChild(t);
-        return t;
     }
 
-    function hitTarget(t) {
-        if (gameModeSelect.value === "tracking") return;
-        score++;
-        scoreText.innerText = Math.floor(score);
-        t.remove();
-        createTarget(gameModeSelect.value === "multi");
-    }
-
-    function resetGame() {
-        score = 0;
-        scoreText.innerText = 0;
-        document.querySelectorAll('.target').forEach(t => t.remove());
-        const count = gameModeSelect.value === "multi" ? 5 : 1;
-        for(let i=0; i<count; i++) createTarget(gameModeSelect.value === "multi");
-    }
-
-    // Tıklama Algılama (Merkez Nişangah İçin)
+    // ATEŞ VE İSABET
     document.addEventListener('mousedown', () => {
-        if (document.pointerLockElement !== document.body || gameModeSelect.value === "tracking") return;
-        const targets = document.querySelectorAll('.target');
+        if (document.pointerLockElement !== document.body) return;
+        shots++;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
+        let hitFound = false;
 
-        targets.forEach(t => {
-            const rect = t.getBoundingClientRect();
-            if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
-                hitTarget(t);
+        document.querySelectorAll('.target').forEach(t => {
+            const r = t.getBoundingClientRect();
+            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+                hits++; score++;
+                t.remove();
+                spawn();
+                hitFound = true;
             }
         });
+        
+        accText.innerText = Math.floor((hits / shots) * 100);
+        scoreText.innerText = score;
     });
 
-    // Tracking ve Hareket Döngüsü
+    // ZAMANLAYICI DÖNGÜSÜ
     setInterval(() => {
         if (document.pointerLockElement !== document.body) return;
-        const mode = gameModeSelect.value;
-        const s = parseInt(speedInput.value);
-        const t = document.querySelector('.target');
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        timerText.innerText = `${m}:${s}`;
+    }, 1000);
 
-        if (mode === "tracking" && t) {
-            angle += 0.015 * s; 
-            trackingX = 1500 + Math.sin(angle) * 600; // Sağa sola uzun gidiş
-            trackingY = 1500 + Math.cos(angle * 0.5) * 250; 
-            t.style.left = trackingX + 'px';
-            t.style.top = trackingY + 'px';
+    // Başlat
+    updateCrosshair();
+    for(let i=0; i<3; i++) spawn();
 
-            const rect = t.getBoundingClientRect();
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
-                score += 0.15;
-                scoreText.innerText = Math.floor(score);
-            }
-        }
-    }, 25);
-
-    gameModeSelect.addEventListener('change', resetGame);
-    resetGame();
+    document.getElementById('resetBtn').onclick = () => {
+        score = 0; shots = 0; hits = 0; startTime = Date.now();
+        scoreText.innerText = '0'; accText.innerText = '100';
+    };
 </script>
 </body>
 </html>
