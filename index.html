@@ -2,107 +2,113 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sinan Aydoğan Aim Trainer - Pro</title>
+    <title>Sinan Aydoğan Aim Trainer - v5.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        /* Başlat Menüsü */
-        #start-overlay {
+        /* GİRİŞ LOBİSİ */
+        #lobby-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(13, 17, 23, 0.9);
+            background: radial-gradient(circle, #1a232e 0%, #0d1117 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 500;
+            z-index: 500; transition: 0.3s;
         }
+
+        #lobby-content {
+            background: rgba(22, 27, 34, 0.95);
+            padding: 40px; border-radius: 15px; border: 1px solid #30363d;
+            width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* OYUN İÇİ HUD (Üst Gösterge) */
+        #hud {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            display: none; gap: 40px; background: rgba(13, 17, 23, 0.8);
+            padding: 10px 40px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+            z-index: 100; font-weight: bold; letter-spacing: 2px;
+        }
+
+        .hud-item { display: flex; flex-direction: column; align-items: center; }
+        .hud-label { font-size: 10px; color: #8b949e; margin-bottom: 2px; }
+
+        /* Form Elemanları */
+        select, input { 
+            width: 100%; background: #21262d; color: white; border: 1px solid #484f58; 
+            padding: 12px; margin: 10px 0 20px 0; border-radius: 8px; font-size: 14px;
+        }
+        label { font-size: 12px; font-weight: bold; color: #8b949e; text-align: left; display: block; }
 
         #start-btn {
-            padding: 20px 50px; font-size: 24px; font-weight: bold;
-            background: #ff4655; color: white; border: none; border-radius: 5px;
-            cursor: pointer; transition: 0.2s;
+            width: 100%; padding: 15px; font-size: 18px; font-weight: bold;
+            background: #ff4655; color: white; border: none; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; margin-top: 10px;
         }
-        #start-btn:hover { background: #ff5e6a; transform: scale(1.05); }
+        #start-btn:hover { background: #ff5e6a; transform: translateY(-2px); }
 
-        #game-container {
-            width: 100vw; height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-        }
-
+        /* Oyun Alanı */
         #world {
-            position: absolute;
-            width: 4000px; height: 3000px;
+            position: absolute; width: 4000px; height: 3000px;
             display: flex; align-items: center; justify-content: center;
-            transition: background 0.3s;
         }
-
         .bg-dots { background: radial-gradient(circle, #21262d 2px, transparent 2px); background-size: 60px 60px; }
         .bg-grid { background-image: linear-gradient(#161b22 1px, transparent 1px), linear-gradient(90deg, #161b22 1px, transparent 1px); background-size: 50px 50px; }
-        .bg-dark { background-color: #050505; }
 
         #watermark {
-            position: absolute; font-size: 100px; font-weight: 900;
+            position: absolute; font-size: 120px; font-weight: 900;
             color: rgba(255, 255, 255, 0.03); pointer-events: none; user-select: none;
             text-transform: uppercase; text-align: center;
         }
 
-        /* Nişangah */
         #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
-        .ch-part { background: #fff; box-shadow: 0 0 2px #000; position: absolute; }
+        .ch-part { background: #fff; position: absolute; }
 
-        /* Hedef Tipleri */
         .target { position: absolute; z-index: 10; cursor: none; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px #00f2ff; }
         .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; }
-
-        /* Arayüz */
-        #ui {
-            position: fixed; top: 20px; left: 20px;
-            background: rgba(13, 17, 23, 0.95);
-            padding: 15px; border: 1px solid #30363d; border-left: 4px solid #fff; z-index: 200;
-            width: 240px;
-        }
-        select, input { width: 100%; background: #21262d; color: white; border: 1px solid #484f58; padding: 5px; margin: 5px 0 10px 0; }
-        label { font-size: 11px; font-weight: bold; color: #8b949e; }
     </style>
 </head>
 <body>
 
-<div id="start-overlay">
-    <h1 style="margin-bottom: 20px; letter-spacing: 5px;">SINAN AYDOĞAN</h1>
-    <button id="start-btn">OYUNU BAŞLAT</button>
-    <p style="margin-top: 15px; color: #6e7681;">Kamerayı bırakmak için <b>ESC</b>'ye bas.</p>
+<div id="lobby-overlay">
+    <div id="lobby-content">
+        <h1 style="margin-bottom: 30px; letter-spacing: 5px; color: #ff4655;">SINAN AYDOĞAN</h1>
+        
+        <label>OYUN MODU</label>
+        <select id="gameMode">
+            <option value="flick">Klasik (Flick)</option>
+            <option value="tracking">Uzun Takip (Tracking)</option>
+            <option value="multi">Çoklu Hedef (Multi)</option>
+        </select>
+
+        <label>VALORANT SENS</label>
+        <input type="number" id="valSens" value="0.5" step="0.1">
+
+        <label>ARKA PLAN</label>
+        <select id="bgType">
+            <option value="bg-dots">Noktalı</option>
+            <option value="bg-grid">Izgara</option>
+        </select>
+
+        <button id="start-btn">ANTRENMANI BAŞLAT</button>
+        <p style="margin-top: 20px; color: #484f58; font-size: 11px;">Çıkmak için <b>ESC</b> tuşuna bas.</p>
+    </div>
 </div>
 
-<div id="ui">
-    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-        <div>SKOR: <span id="score">0</span></div>
-        <div>İSABET: <span id="accuracy">100</span>%</div>
+<div id="hud">
+    <div class="hud-item">
+        <span class="hud-label">SKOR</span>
+        <span id="score">0</span>
     </div>
-    
-    <label>OYUN MODU:</label>
-    <select id="gameMode">
-        <option value="flick">Klasik (Flick)</option>
-        <option value="tracking">Takip (Tracking)</option>
-        <option value="multi">Çoklu (Multi)</option>
-    </select>
-
-    <label>HEDEF TİPİ:</label>
-    <select id="targetType">
-        <option value="type-balloon">Kırmızı Balon</option>
-        <option value="type-orb">Mavi Küre</option>
-        <option value="type-cube">Sarı Küp</option>
-    </select>
-
-    <label>ARKA PLAN:</label>
-    <select id="bgType">
-        <option value="bg-dots">Noktalı</option>
-        <option value="bg-grid">Izgara</option>
-        <option value="bg-dark">Saf Karanlık</option>
-    </select>
-
-    <label>VAL SENS:</label>
-    <input type="number" id="valSens" value="0.5" step="0.1">
+    <div class="hud-item">
+        <span class="hud-label">SÜRE</span>
+        <span id="timer">00:00</span>
+    </div>
+    <div class="hud-item">
+        <span class="hud-label">İSABET</span>
+        <span id="accuracy">100</span>%
+    </div>
 </div>
 
 <div id="crosshair">
@@ -118,60 +124,65 @@
 
 <script>
     const world = document.getElementById('world');
+    const hud = document.getElementById('hud');
+    const lobby = document.getElementById('lobby-overlay');
     const scoreText = document.getElementById('score');
+    const timerText = document.getElementById('timer');
     const accText = document.getElementById('accuracy');
     const valSensInput = document.getElementById('valSens');
-    const startOverlay = document.getElementById('start-overlay');
     const startBtn = document.getElementById('start-btn');
     const gameModeSelect = document.getElementById('gameMode');
+    const bgTypeSelect = document.getElementById('bgType');
 
-    let score = 0, shots = 0, hits = 0;
-    let viewX = 0, viewY = 0;
-    let isGameRunning = false;
+    let score = 0, shots = 0, hits = 0, startTime = 0;
+    let viewX = 0, viewY = 0, isGameRunning = false;
     let trackingAngle = 0;
 
-    // BAŞLAT BUTONU
+    // OYUNU BAŞLAT
     startBtn.onclick = () => {
         document.body.requestPointerLock();
     };
 
     document.addEventListener('pointerlockchange', () => {
         if (document.pointerLockElement === document.body) {
-            startOverlay.style.display = 'none';
             isGameRunning = true;
-            resetAndSpawn();
+            lobby.style.display = 'none';
+            hud.style.display = 'flex';
+            world.className = bgTypeSelect.value;
+            score = 0; shots = 0; hits = 0;
+            startTime = Date.now();
+            updateStats();
+            resetTargets();
         } else {
-            startOverlay.style.display = 'flex';
             isGameRunning = false;
-            clearTargets();
+            lobby.style.display = 'flex';
+            hud.style.display = 'none';
+            clearAllTargets();
         }
     });
 
-    // HEDEFLERİ TEMİZLE VE YENİDEN OLUŞTUR
-    function resetAndSpawn() {
-        clearTargets();
-        const mode = gameModeSelect.value;
-        const count = mode === 'multi' ? 5 : 1;
+    function resetTargets() {
+        clearAllTargets();
+        const count = gameModeSelect.value === 'multi' ? 5 : 1;
         for(let i=0; i<count; i++) spawn();
     }
 
-    function clearTargets() {
+    function clearAllTargets() {
         document.querySelectorAll('.target').forEach(t => t.remove());
     }
 
     function spawn() {
         if(!isGameRunning) return;
         const t = document.createElement('div');
-        const type = document.getElementById('targetType').value;
-        t.className = `target ${type}`;
-        t.style.left = (1500 + (Math.random()-0.5)*1000) + 'px';
+        t.className = `target type-balloon`; // Sabit balon tipi (istersen lobiye ekleyebilirsin)
+        t.style.left = (1500 + (Math.random()-0.5)*1200) + 'px';
         t.style.top = (1500 + (Math.random()-0.5)*800) + 'px';
         world.appendChild(t);
     }
 
-    // KAMERA
+    // KAMERA VE HAREKET
     document.addEventListener('mousemove', (e) => {
-        if (document.pointerLockElement === document.body) {
+        if (isGameRunning) {
             let sens = parseFloat(valSensInput.value) || 0.5;
             viewX -= e.movementX * sens * 1.5;
             viewY -= e.movementY * sens * 1.5;
@@ -181,52 +192,57 @@
         }
     });
 
-    // ATEŞ MANTIĞI
+    // ATEŞ VE İSTATİSTİK
     document.addEventListener('mousedown', () => {
-        if (!isGameRunning) return;
+        if (!isGameRunning || gameModeSelect.value === 'tracking') return;
         shots++;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
-        let hitDetected = false;
-
+        
         document.querySelectorAll('.target').forEach(t => {
             const r = t.getBoundingClientRect();
             if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
                 hits++; score++;
                 t.remove();
                 spawn();
-                hitDetected = true;
             }
         });
-        
-        accText.innerText = Math.floor((hits / shots) * 100);
-        scoreText.innerText = score;
+        updateStats();
     });
 
-    // TRACKING DÖNGÜSÜ
+    function updateStats() {
+        scoreText.innerText = Math.floor(score);
+        accText.innerText = shots === 0 ? 100 : Math.floor((hits / shots) * 100);
+    }
+
+    // TRACKING VE TIMER DÖNGÜSÜ
     setInterval(() => {
-        if (!isGameRunning || gameModeSelect.value !== 'tracking') return;
-        const t = document.querySelector('.target');
-        if (t) {
-            trackingAngle += 0.05;
-            let tx = parseFloat(t.style.left);
-            t.style.left = (tx + Math.sin(trackingAngle) * 10) + 'px';
-            
-            // Otomatik Puan (Takip Ediyorsa)
-            const r = t.getBoundingClientRect();
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                score += 0.1;
-                scoreText.innerText = Math.floor(score);
+        if (!isGameRunning) return;
+        
+        // Timer Güncelleme
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        timerText.innerText = `${m}:${s}`;
+
+        // Tracking Modu
+        if (gameModeSelect.value === 'tracking') {
+            const t = document.querySelector('.target');
+            if (t) {
+                trackingAngle += 0.04;
+                let tx = parseFloat(t.style.left);
+                t.style.left = (tx + Math.sin(trackingAngle) * 12) + 'px';
+                
+                const r = t.getBoundingClientRect();
+                const cx = window.innerWidth / 2;
+                const cy = window.innerHeight / 2;
+                if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+                    score += 0.15;
+                    updateStats();
+                }
             }
         }
     }, 30);
-
-    // AYAR DEĞİŞİKLİKLERİ
-    document.getElementById('bgType').onchange = (e) => world.className = e.target.value;
-    gameModeSelect.onchange = resetAndSpawn;
-    document.getElementById('targetType').onchange = resetAndSpawn;
 
 </script>
 </body>
