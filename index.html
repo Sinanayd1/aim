@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sinan Aydoğan Aim Trainer - Pro</title>
+    <title>Sinan Aydoğan Aim Trainer - Ultimate</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background-color: #0d1117; font-family: sans-serif; color: white; }
@@ -15,7 +15,7 @@
 
         #world {
             position: absolute;
-            width: 3000px; height: 3000px;
+            width: 4000px; height: 3000px;
             background: radial-gradient(circle, #21262d 1.5px, transparent 1.5px);
             background-size: 60px 60px;
             display: flex; align-items: center; justify-content: center;
@@ -29,180 +29,184 @@
             text-transform: uppercase;
         }
 
-        /* BEYAZ ARTI NİŞANGAH */
+        /* BEYAZ ARTI NİŞANGAH (Dinamik Boyutlu) */
         #crosshair {
             position: fixed; top: 50%; left: 50%;
-            width: 22px; height: 22px;
             transform: translate(-50%, -50%);
             z-index: 100; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
         }
-        .ch-h { position: absolute; top: 10px; width: 22px; height: 2px; background: #ffffff; box-shadow: 0 0 2px #000; }
-        .ch-v { position: absolute; left: 10px; height: 22px; width: 2px; background: #ffffff; box-shadow: 0 0 2px #000; }
+        .ch-h { position: absolute; background: #ffffff; box-shadow: 0 0 2px #000; }
+        .ch-v { position: absolute; background: #ffffff; box-shadow: 0 0 2px #000; }
 
         .target { position: absolute; cursor: none; z-index: 10; will-change: top, left; }
         .balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
+        .small-target { width: 25px; height: 35px; background: #ff4655; border-radius: 50%; }
         .square { width: 30px; height: 30px; background: #00f2ff; border: 2px solid white; }
-        .tracking { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; } /* Takip modu için sarı balon */
+        .tracking { background: #ffcc00; box-shadow: 0 0 20px #ffcc00; }
 
         #ui {
             position: fixed; top: 20px; left: 20px;
             background: rgba(13, 17, 23, 0.95);
-            padding: 20px; border: 1px solid #30363d; border-left: 4px solid #ffffff; z-index: 200;
+            padding: 15px; border: 1px solid #30363d; border-left: 4px solid #ffffff; z-index: 200;
+            width: 220px;
         }
         select, input { 
             width: 100%; background: #21262d; color: white; border: 1px solid #484f58; 
-            padding: 5px; margin: 5px 0 10px 0; border-radius: 4px;
+            padding: 4px; margin: 3px 0 10px 0; border-radius: 4px; font-size: 12px;
         }
-        label { font-size: 11px; font-weight: bold; color: #8b949e; text-transform: uppercase; }
+        label { font-size: 10px; font-weight: bold; color: #8b949e; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color:#ffffff;">SKOR: <span id="score">0</span></div>
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">SKOR: <span id="score">0</span></div>
     
     <label>Mod Seçimi:</label>
     <select id="gameMode">
-        <option value="balloon">Kaçan Balon (Flick)</option>
-        <option value="grid">Hızlı Kare (Speed)</option>
-        <option value="tracking">Takip Etme (Tracking)</option>
+        <option value="balloon">Kaçan Balon</option>
+        <option value="grid">Hızlı Kare (Grid)</option>
+        <option value="tracking">Uzun Takip (Tracking)</option>
+        <option value="multi">Çoklu Küçük Balon</option>
     </select>
 
     <label>Valorant Sens:</label>
     <input type="number" id="valSens" value="0.5" step="0.1">
 
-    <label>Hareket/Kaçış Hızı:</label>
-    <input type="range" id="speed" min="1" max="25" value="8">
+    <label>Nişangah Boyutu:</label>
+    <input type="range" id="chSize" min="5" max="40" value="20">
+
+    <label>Hareket Hızı:</label>
+    <input type="range" id="speed" min="1" max="25" value="10">
     
-    <p id="mode-desc" style="font-size: 10px; color: #6e7681; margin-top: 5px;">Tıkla: Başla | ESC: Çık</p>
+    <p style="font-size: 9px; color: #6e7681;">Click: Başla | ESC: Çık</p>
 </div>
 
-<div id="crosshair"><div class="ch-h"></div><div class="ch-v"></div></div>
+<div id="crosshair">
+    <div id="ch-h" class="ch-h"></div>
+    <div id="ch-v" class="ch-v"></div>
+</div>
 
 <div id="game-container">
     <div id="world">
         <div id="watermark">SINAN AYDOĞAN</div>
-        <div id="target" class="target balloon"></div>
-    </div>
+        </div>
 </div>
 
 <script>
     const world = document.getElementById('world');
-    const target = document.getElementById('target');
     const scoreText = document.getElementById('score');
     const valSensInput = document.getElementById('valSens');
     const speedInput = document.getElementById('speed');
+    const chSizeInput = document.getElementById('chSize');
     const gameModeSelect = document.getElementById('gameMode');
+    const chH = document.getElementById('ch-h');
+    const chV = document.getElementById('ch-v');
 
     let score = 0;
-    let viewX = 0;
-    let viewY = 0;
+    let viewX = 0, viewY = 0;
+    let trackingX = 1500, trackingY = 1500, angle = 0;
 
-    // Tracking Modu Değişkenleri
-    let targetX = 1500;
-    let targetY = 1500;
-    let angle = 0;
+    // Nişangah Boyutu Güncelleme
+    function updateCrosshair() {
+        const size = chSizeInput.value;
+        chH.style.width = size + 'px';
+        chH.style.height = '2px';
+        chV.style.height = size + 'px';
+        chV.style.width = '2px';
+    }
+    chSizeInput.addEventListener('input', updateCrosshair);
+    updateCrosshair();
 
-    // Kamera Hareket Sistemi
+    // Kamera Sistemi
     document.addEventListener('mousemove', (e) => {
         if (document.pointerLockElement === document.body) {
             let sens = parseFloat(valSensInput.value) || 0.5;
             viewX -= e.movementX * sens * 1.5;
             viewY -= e.movementY * sens * 1.5;
-
-            viewX = Math.max(-1000, Math.min(1000, viewX));
-            viewY = Math.max(-800, Math.min(800, viewY));
-
+            viewX = Math.max(-1200, Math.min(1200, viewX));
+            viewY = Math.max(-1000, Math.min(1000, viewY));
             world.style.transform = `translate(${viewX}px, ${viewY}px)`;
         }
     });
 
     document.body.addEventListener('click', () => {
-        if (document.pointerLockElement !== document.body) {
-            document.body.requestPointerLock();
-        }
+        document.body.requestPointerLock();
     });
 
-    function spawn() {
-        const mode = gameModeSelect.value;
-        target.className = "target " + (mode === "grid" ? "square" : (mode === "tracking" ? "balloon tracking" : "balloon"));
+    function createTarget(isMulti = false) {
+        const t = document.createElement('div');
+        t.className = "target " + (gameModeSelect.value === "grid" ? "square" : (gameModeSelect.value === "tracking" ? "balloon tracking" : (isMulti ? "small-target" : "balloon")));
         
-        targetX = 1500 + (Math.random() - 0.5) * 600; 
-        targetY = 1500 + (Math.random() - 0.5) * 400;
+        const rx = 1500 + (Math.random() - 0.5) * (isMulti ? 1200 : 800); 
+        const ry = 1500 + (Math.random() - 0.5) * (isMulti ? 800 : 600);
         
-        target.style.left = targetX + 'px';
-        target.style.top = targetY + 'px';
+        t.style.left = rx + 'px';
+        t.style.top = ry + 'px';
+        
+        t.onclick = (e) => hitTarget(t);
+        world.appendChild(t);
+        return t;
     }
 
-    // Ateş Etme (Sadece Click Modlarında)
+    function hitTarget(t) {
+        if (gameModeSelect.value === "tracking") return;
+        score++;
+        scoreText.innerText = Math.floor(score);
+        t.remove();
+        createTarget(gameModeSelect.value === "multi");
+    }
+
+    function resetGame() {
+        score = 0;
+        scoreText.innerText = 0;
+        document.querySelectorAll('.target').forEach(t => t.remove());
+        const count = gameModeSelect.value === "multi" ? 5 : 1;
+        for(let i=0; i<count; i++) createTarget(gameModeSelect.value === "multi");
+    }
+
+    // Tıklama Algılama (Merkez Nişangah İçin)
     document.addEventListener('mousedown', () => {
-        if (document.pointerLockElement === document.body) {
-            if (gameModeSelect.value === "tracking") return; // Tracking modunda tıklamaya gerek yok
+        if (document.pointerLockElement !== document.body || gameModeSelect.value === "tracking") return;
+        const targets = document.querySelectorAll('.target');
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
 
-            const rect = target.getBoundingClientRect();
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-
+        targets.forEach(t => {
+            const rect = t.getBoundingClientRect();
             if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
-                score++;
-                scoreText.innerText = score;
-                spawn();
+                hitTarget(t);
             }
-        }
+        });
     });
 
-    // Ana Oyun Döngüsü (30ms'de bir çalışır)
+    // Tracking ve Hareket Döngüsü
     setInterval(() => {
         if (document.pointerLockElement !== document.body) return;
         const mode = gameModeSelect.value;
         const s = parseInt(speedInput.value);
+        const t = document.querySelector('.target');
 
-        if (mode === "tracking") {
-            // YUMUŞAK HAREKET MANTIĞI (SÜZÜLME)
-            angle += 0.02 * s; 
-            targetX += Math.sin(angle) * (s * 0.5);
-            targetY += Math.cos(angle * 0.7) * (s * 0.4);
+        if (mode === "tracking" && t) {
+            angle += 0.015 * s; 
+            trackingX = 1500 + Math.sin(angle) * 600; // Sağa sola uzun gidiş
+            trackingY = 1500 + Math.cos(angle * 0.5) * 250; 
+            t.style.left = trackingX + 'px';
+            t.style.top = trackingY + 'px';
 
-            // Sınır Koruması
-            if (targetX < 1200 || targetX > 1800) angle += Math.PI;
-            if (targetY < 1200 || targetY > 1800) angle += Math.PI;
-
-            target.style.left = targetX + 'px';
-            target.style.top = targetY + 'px';
-
-            // Takip Kontrolü (Skor için üstünde durma)
-            const rect = target.getBoundingClientRect();
+            const rect = t.getBoundingClientRect();
             const cx = window.innerWidth / 2;
             const cy = window.innerHeight / 2;
             if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
-                score += 0.1; // Üstünde durdukça puan artar
+                score += 0.15;
                 scoreText.innerText = Math.floor(score);
             }
-
-        } else if (mode === "balloon") {
-            // KAÇAN BALON MANTIĞI
-            const rect = target.getBoundingClientRect();
-            const dist = Math.sqrt(Math.pow((window.innerWidth/2) - (rect.left+22), 2) + Math.pow((window.innerHeight/2) - (rect.top+30), 2));
-            if (dist < 120) {
-                let currX = parseFloat(target.style.left);
-                let currY = parseFloat(target.style.top);
-                let mx = (Math.random() - 0.5) * s * 10;
-                let my = (Math.random() - 0.5) * s * 10;
-                if (currX < 1200) mx = Math.abs(mx); if (currX > 1800) mx = -Math.abs(mx);
-                if (currY < 1200) my = Math.abs(my); if (currY > 1800) my = -Math.abs(my);
-                target.style.left = (currX + mx) + 'px';
-                target.style.top = (currY + my) + 'px';
-            }
         }
-    }, 30);
+    }, 25);
 
-    gameModeSelect.addEventListener('change', () => {
-        score = 0;
-        scoreText.innerText = 0;
-        spawn();
-    });
-
-    spawn();
+    gameModeSelect.addEventListener('change', resetGame);
+    resetGame();
 </script>
 </body>
 </html>
