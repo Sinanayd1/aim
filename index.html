@@ -7,7 +7,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        /* GİRİŞ LOBİSİ (İkiye Bölünmüş) */
+        /* GİRİŞ LOBİSİ */
         #lobby-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1a232e 0%, #0d1117 100%);
@@ -15,14 +15,12 @@
             z-index: 500; transition: 0.3s;
         }
 
-        /* Sol: Ayarlar */
         #lobby-content {
             background: rgba(22, 27, 34, 0.95);
             padding: 25px 35px; border-radius: 15px; border: 1px solid #30363d;
-            width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        /* Sağ: Önizleme Ekranı */
         #preview-box {
             width: 350px; height: 350px; border-radius: 15px; border: 2px solid #484f58;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); position: relative; overflow: hidden;
@@ -33,12 +31,10 @@
             background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px; color: #8b949e; z-index: 20;
         }
 
-        /* Arka Planlar */
         .bg-dots { background: radial-gradient(circle, #21262d 2px, transparent 2px); background-size: 60px 60px; }
         .bg-grid { background-image: linear-gradient(#161b22 1px, transparent 1px), linear-gradient(90deg, #161b22 1px, transparent 1px); background-size: 50px 50px; }
         .bg-dark { background-color: #050505; }
 
-        /* Form Elemanları */
         .form-row { display: flex; gap: 15px; }
         .form-col { flex: 1; }
         select, input { 
@@ -50,11 +46,10 @@
         #start-btn {
             width: 100%; padding: 15px; font-size: 16px; font-weight: bold; letter-spacing: 1px;
             background: #ff4655; color: white; border: none; border-radius: 8px;
-            cursor: pointer; transition: 0.2s; margin-top: 10px;
+            cursor: pointer; transition: 0.2s; margin-top: 5px;
         }
         #start-btn:hover { background: #ff5e6a; transform: translateY(-2px); }
 
-        /* OYUN İÇİ HUD */
         #hud {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 40px; background: rgba(13, 17, 23, 0.8);
@@ -64,7 +59,6 @@
         .hud-item { display: flex; flex-direction: column; align-items: center; }
         .hud-label { font-size: 10px; color: #8b949e; margin-bottom: 2px; }
 
-        /* Oyun Alanı ve Hedefler */
         #world {
             position: absolute; width: 3000px; height: 3000px;
             display: flex; align-items: center; justify-content: center;
@@ -77,7 +71,8 @@
         .ch-part { background: #fff; position: absolute; box-shadow: 0 0 2px #000; }
         #crosshair, #preview-ch { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
         
-        .target { position: absolute; z-index: 10; cursor: none; }
+        /* Yeni Akıcı Geçiş Fizikleri (Transition) eklendi */
+        .target { position: absolute; z-index: 10; cursor: none; transition: left 0.15s ease-out, top 0.15s ease-out; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
         .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
@@ -86,9 +81,8 @@
 <body>
 
 <div id="lobby-overlay">
-    
     <div id="lobby-content">
-        <h1 style="margin-bottom: 20px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
+        <h1 style="margin-bottom: 15px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
         
         <div class="form-row">
             <div class="form-col">
@@ -126,6 +120,17 @@
 
         <div class="form-row">
             <div class="form-col">
+                <label>Hedef / Kaçış Hızı</label>
+                <input type="range" id="speed" min="1" max="25" value="8">
+            </div>
+            <div class="form-col">
+                <label>Hedef Boyutu (Scale)</label>
+                <input type="range" id="targetSize" min="0.5" max="2" step="0.1" value="1">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-col">
                 <label>Arka Plan</label>
                 <select id="bgType">
                     <option value="bg-dots">Noktalı</option>
@@ -139,9 +144,6 @@
             </div>
         </div>
 
-        <label>Hedef / Kaçış Hızı</label>
-        <input type="range" id="speed" min="1" max="25" value="8">
-
         <button id="start-btn">OYUNA BAŞLA</button>
         <p style="margin-top: 10px; color: #484f58; font-size: 11px; text-align: center;">Kamerayı bırakmak için <b>ESC</b> tuşuna bas.</p>
     </div>
@@ -151,7 +153,6 @@
         <div id="preview-ch"></div>
         <div id="preview-target" class="target type-balloon" style="position: relative; margin-left: 80px; margin-top: 40px;"></div>
     </div>
-
 </div>
 
 <div id="hud">
@@ -180,6 +181,7 @@
     const gameModeSelect = document.getElementById('gameMode');
     const bgTypeSelect = document.getElementById('bgType');
     const targetTypeSelect = document.getElementById('targetType');
+    const targetSizeInput = document.getElementById('targetSize');
     
     const chBox = document.getElementById('crosshair');
     const previewBox = document.getElementById('preview-box');
@@ -190,10 +192,10 @@
     let viewX = 0, viewY = 0, isGameRunning = false;
     let trackingAngle = 0;
 
-    // --- CANLI ÖNİZLEME VE NİŞANGAH GÜNCELLEME ---
     function updatePreviewAndCrosshair() {
         const type = document.getElementById('chType').value;
         const size = parseInt(document.getElementById('chSize').value);
+        const tScale = targetSizeInput.value;
         let chHTML = '';
 
         if(type === 'cross') {
@@ -205,25 +207,21 @@
             chHTML = `<div class="ch-part" style="width:${size}px; height:${size}px; left:-${size/2}px; top:-${size/2}px; border-radius:50%; background:transparent; border:2px solid #fff;"></div>`;
         }
 
-        // Hem oyunu hem önizlemeyi güncelle
         chBox.innerHTML = chHTML;
         previewCh.innerHTML = chHTML;
-
-        // Arka planı güncelle
         previewBox.className = bgTypeSelect.value;
         
-        // Hedefi güncelle
         previewTarget.className = `target ${targetTypeSelect.value}`;
+        previewTarget.style.transform = `scale(${tScale})`; // Hedef boyutu ayarı
     }
 
-    // Değişiklikleri Dinle
     document.getElementById('chType').addEventListener('change', updatePreviewAndCrosshair);
     document.getElementById('chSize').addEventListener('input', updatePreviewAndCrosshair);
+    document.getElementById('targetSize').addEventListener('input', updatePreviewAndCrosshair);
     bgTypeSelect.addEventListener('change', updatePreviewAndCrosshair);
     targetTypeSelect.addEventListener('change', updatePreviewAndCrosshair);
-    updatePreviewAndCrosshair(); // İlk açılış
+    updatePreviewAndCrosshair();
 
-    // --- OYUN BAŞLATMA ---
     startBtn.onclick = () => document.body.requestPointerLock();
 
     document.addEventListener('pointerlockchange', () => {
@@ -250,17 +248,17 @@
         for(let i=0; i<count; i++) spawn();
     }
 
+    // DÜZELTME: Sadece 'world' içindeki hedefleri sil, önizlemeyi silme!
     function clearAllTargets() {
-        document.querySelectorAll('.target').forEach(t => t.remove());
+        document.querySelectorAll('#world .target').forEach(t => t.remove());
     }
 
-    // --- HEDEF DOĞMA (DARALTILMIŞ ALAN) ---
     function spawn() {
         if(!isGameRunning) return;
         const t = document.createElement('div');
         t.className = `target ${targetTypeSelect.value}`;
+        t.style.transform = `scale(${targetSizeInput.value})`; // Boyutu uygula
         
-        // Balonların uzağa gitmemesi için çıkış alanını yarı yarıya DARALTTIM (800x600 px alan)
         const rx = 1500 + (Math.random()-0.5) * 800; 
         const ry = 1500 + (Math.random()-0.5) * 600; 
         
@@ -269,7 +267,6 @@
         world.appendChild(t);
     }
 
-    // --- KAMERA ---
     document.addEventListener('mousemove', (e) => {
         if (isGameRunning) {
             let sens = parseFloat(valSensInput.value) || 0.5;
@@ -282,15 +279,14 @@
         }
     });
 
-    // --- ATEŞ ETME ---
     document.addEventListener('mousedown', () => {
         if (!isGameRunning || gameModeSelect.value === 'tracking') return;
         shots++;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
         
-        document.querySelectorAll('.target').forEach(t => {
-            const r = t.getBoundingClientRect();
+        document.querySelectorAll('#world .target').forEach(t => {
+            const r = t.getBoundingClientRect(); // getBoundingClientRect scale() değerini de hesaplar, hit-box kusursuz çalışır
             if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
                 hits++; score++;
                 t.remove();
@@ -305,7 +301,6 @@
         accText.innerText = shots === 0 ? 100 : Math.floor((hits / shots) * 100);
     }
 
-    // --- OYUN DÖNGÜSÜ (DARALTILMIŞ KAÇIŞ ALANI) ---
     setInterval(() => {
         if (!isGameRunning) return;
         
@@ -317,9 +312,8 @@
         const speed = parseInt(document.getElementById('speed').value);
         const mode = gameModeSelect.value;
 
-        // Takip Modu
         if (mode === 'tracking') {
-            const t = document.querySelector('.target');
+            const t = document.querySelector('#world .target');
             if (t) {
                 trackingAngle += 0.02 * speed;
                 let tx = parseFloat(t.style.left);
@@ -335,30 +329,47 @@
             }
         }
 
-        // Klasik Mod
+        // AKICI VE DOĞAL KAÇIŞ SİSTEMİ
         if (mode === 'flick') {
-            document.querySelectorAll('.target').forEach(t => {
+            document.querySelectorAll('#world .target').forEach(t => {
                 const r = t.getBoundingClientRect();
                 const cx = window.innerWidth / 2;
                 const cy = window.innerHeight / 2;
-                const dist = Math.sqrt(Math.pow(cx - (r.left + 22), 2) + Math.pow(cy - (r.top + 30), 2));
+                
+                // Balonun merkez noktası
+                const tx = r.left + r.width / 2;
+                const ty = r.top + r.height / 2;
+                const dist = Math.sqrt(Math.pow(cx - tx, 2) + Math.pow(cy - ty, 2));
 
-                if (dist < 120) {
-                    let tx = parseFloat(t.style.left);
-                    let ty = parseFloat(t.style.top);
-                    let mx = (Math.random() - 0.5) * speed * 7;
-                    let my = (Math.random() - 0.5) * speed * 7;
+                if (dist < 150) { // Farenin yaklaştığını hissettiğinde
+                    let currentX = parseFloat(t.style.left);
+                    let currentY = parseFloat(t.style.top);
                     
-                    // Merkeze İtme Sınırları Daraltıldı (1100 - 1900 arası kilitlendi)
-                    if(tx < 1100) mx = Math.abs(mx); if(tx > 1900) mx = -Math.abs(mx);
-                    if(ty < 1200) my = Math.abs(my); if(ty > 1800) my = -Math.abs(my);
+                    // Fareden uzağa doğru bir vektör hesapla (Ters yön)
+                    let dirX = (tx - cx) / dist;
+                    let dirY = (ty - cy) / dist;
+                    
+                    // Düz bir çizgi yerine hafif kavisli kaçması için ufak bir açı (sapma) ekliyoruz
+                    let angle = Math.atan2(dirY, dirX) + (Math.random() - 0.5); 
+                    
+                    let moveX = Math.cos(angle) * speed * 6;
+                    let moveY = Math.sin(angle) * speed * 6;
+                    
+                    let newX = currentX + moveX;
+                    let newY = currentY + moveY;
 
-                    t.style.left = (tx + mx) + 'px';
-                    t.style.top = (ty + my) + 'px';
+                    // Merkeze İtme Sınırları (Kaçarken ekrandan çıkmasın)
+                    if(newX < 1100) newX = 1100 + Math.random() * 50; 
+                    if(newX > 1900) newX = 1900 - Math.random() * 50;
+                    if(newY < 1200) newY = 1200 + Math.random() * 50; 
+                    if(newY > 1800) newY = 1800 - Math.random() * 50;
+
+                    t.style.left = newX + 'px';
+                    t.style.top = newY + 'px';
                 }
             });
         }
-    }, 30);
+    }, 40);
 
 </script>
 </body>
