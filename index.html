@@ -7,13 +7,27 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; }
         
+        /* Başlat Menüsü */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 17, 23, 0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 500;
+        }
+
+        #start-btn {
+            padding: 20px 50px; font-size: 24px; font-weight: bold;
+            background: #ff4655; color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: 0.2s;
+        }
+        #start-btn:hover { background: #ff5e6a; transform: scale(1.05); }
+
         #game-container {
             width: 100vw; height: 100vh;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
 
-        /* Dinamik Arka Planlar */
         #world {
             position: absolute;
             width: 4000px; height: 3000px;
@@ -21,62 +35,56 @@
             transition: background 0.3s;
         }
 
-        /* Arka Plan Seçenekleri */
         .bg-dots { background: radial-gradient(circle, #21262d 2px, transparent 2px); background-size: 60px 60px; }
         .bg-grid { background-image: linear-gradient(#161b22 1px, transparent 1px), linear-gradient(90deg, #161b22 1px, transparent 1px); background-size: 50px 50px; }
         .bg-dark { background-color: #050505; }
 
         #watermark {
-            position: absolute;
-            font-size: 120px; font-weight: 900;
-            color: rgba(255, 255, 255, 0.03);
-            pointer-events: none; user-select: none;
-            text-transform: uppercase;
-            text-align: center;
+            position: absolute; font-size: 100px; font-weight: 900;
+            color: rgba(255, 255, 255, 0.03); pointer-events: none; user-select: none;
+            text-transform: uppercase; text-align: center;
         }
 
-        /* NİŞANGAH SİSTEMİ */
-        #crosshair {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 100; pointer-events: none;
-        }
+        /* Nişangah */
+        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
         .ch-part { background: #fff; box-shadow: 0 0 2px #000; position: absolute; }
 
-        /* HEDEF ÇEŞİTLERİ */
+        /* Hedef Tipleri */
         .target { position: absolute; z-index: 10; cursor: none; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px #00f2ff; }
         .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; }
 
-        /* ARAYÜZ */
+        /* Arayüz */
         #ui {
             position: fixed; top: 20px; left: 20px;
             background: rgba(13, 17, 23, 0.95);
             padding: 15px; border: 1px solid #30363d; border-left: 4px solid #fff; z-index: 200;
-            width: 240px; font-size: 12px;
-        }
-        #stats-panel {
-            margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 5px;
+            width: 240px;
         }
         select, input { width: 100%; background: #21262d; color: white; border: 1px solid #484f58; padding: 5px; margin: 5px 0 10px 0; }
-        label { font-weight: bold; color: #8b949e; display: block; margin-top: 5px; }
+        label { font-size: 11px; font-weight: bold; color: #8b949e; }
     </style>
 </head>
 <body>
 
+<div id="start-overlay">
+    <h1 style="margin-bottom: 20px; letter-spacing: 5px;">SINAN AYDOĞAN</h1>
+    <button id="start-btn">OYUNU BAŞLAT</button>
+    <p style="margin-top: 15px; color: #6e7681;">Kamerayı bırakmak için <b>ESC</b>'ye bas.</p>
+</div>
+
 <div id="ui">
-    <div id="stats-panel">
+    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
         <div>SKOR: <span id="score">0</span></div>
-        <div>SÜRE: <span id="timer">00:00</span></div>
         <div>İSABET: <span id="accuracy">100</span>%</div>
     </div>
     
     <label>OYUN MODU:</label>
     <select id="gameMode">
-        <option value="balloon">Klasik Balon</option>
-        <option value="tracking">Takip Etme</option>
-        <option value="multi">Çoklu Hedef</option>
+        <option value="flick">Klasik (Flick)</option>
+        <option value="tracking">Takip (Tracking)</option>
+        <option value="multi">Çoklu (Multi)</option>
     </select>
 
     <label>HEDEF TİPİ:</label>
@@ -93,20 +101,14 @@
         <option value="bg-dark">Saf Karanlık</option>
     </select>
 
-    <label>NİŞANGAH TİPİ:</label>
-    <select id="chType">
-        <option value="cross">Artı (+)</option>
-        <option value="dot">Nokta (.)</option>
-        <option value="circle">Daire (o)</option>
-    </select>
-
     <label>VAL SENS:</label>
     <input type="number" id="valSens" value="0.5" step="0.1">
-
-    <button id="resetBtn" style="width:100%; padding:8px; background:#ff4655; border:none; color:white; font-weight:bold; cursor:pointer;">REKORU SIFIRLA</button>
 </div>
 
-<div id="crosshair" id="ch-box"></div>
+<div id="crosshair">
+    <div class="ch-part" style="width:20px; height:2px; left:-10px; top:-1px;"></div>
+    <div class="ch-part" style="width:2px; height:20px; left:-1px; top:-10px;"></div>
+</div>
 
 <div id="game-container">
     <div id="world" class="bg-dots">
@@ -117,30 +119,55 @@
 <script>
     const world = document.getElementById('world');
     const scoreText = document.getElementById('score');
-    const timerText = document.getElementById('timer');
     const accText = document.getElementById('accuracy');
     const valSensInput = document.getElementById('valSens');
-    const chBox = document.getElementById('crosshair');
-    
-    let score = 0, shots = 0, hits = 0, startTime = Date.now();
-    let viewX = 0, viewY = 0;
+    const startOverlay = document.getElementById('start-overlay');
+    const startBtn = document.getElementById('start-btn');
+    const gameModeSelect = document.getElementById('gameMode');
 
-    // NİŞANGAH SEÇİMİ
-    function updateCrosshair() {
-        chBox.innerHTML = '';
-        const type = document.getElementById('chType').value;
-        if(type === 'cross') {
-            chBox.innerHTML = '<div class="ch-part" style="width:20px; height:2px; left:-10px; top:-1px;"></div><div class="ch-part" style="width:2px; height:20px; left:-1px; top:-10px;"></div>';
-        } else if(type === 'dot') {
-            chBox.innerHTML = '<div class="ch-part" style="width:6px; height:6px; left:-3px; top:-3px; border-radius:50%;"></div>';
+    let score = 0, shots = 0, hits = 0;
+    let viewX = 0, viewY = 0;
+    let isGameRunning = false;
+    let trackingAngle = 0;
+
+    // BAŞLAT BUTONU
+    startBtn.onclick = () => {
+        document.body.requestPointerLock();
+    };
+
+    document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement === document.body) {
+            startOverlay.style.display = 'none';
+            isGameRunning = true;
+            resetAndSpawn();
         } else {
-            chBox.innerHTML = '<div class="ch-part" style="width:16px; height:16px; left:-8px; top:-8px; border-radius:50%; background:transparent; border:2px solid #fff;"></div>';
+            startOverlay.style.display = 'flex';
+            isGameRunning = false;
+            clearTargets();
         }
+    });
+
+    // HEDEFLERİ TEMİZLE VE YENİDEN OLUŞTUR
+    function resetAndSpawn() {
+        clearTargets();
+        const mode = gameModeSelect.value;
+        const count = mode === 'multi' ? 5 : 1;
+        for(let i=0; i<count; i++) spawn();
     }
 
-    // ARKA PLAN VE MOD GÜNCELLEME
-    document.getElementById('bgType').onchange = (e) => world.className = e.target.value;
-    document.getElementById('chType').onchange = updateCrosshair;
+    function clearTargets() {
+        document.querySelectorAll('.target').forEach(t => t.remove());
+    }
+
+    function spawn() {
+        if(!isGameRunning) return;
+        const t = document.createElement('div');
+        const type = document.getElementById('targetType').value;
+        t.className = `target ${type}`;
+        t.style.left = (1500 + (Math.random()-0.5)*1000) + 'px';
+        t.style.top = (1500 + (Math.random()-0.5)*800) + 'px';
+        world.appendChild(t);
+    }
 
     // KAMERA
     document.addEventListener('mousemove', (e) => {
@@ -154,24 +181,13 @@
         }
     });
 
-    document.body.onclick = () => document.body.requestPointerLock();
-
-    function spawn() {
-        const t = document.createElement('div');
-        const type = document.getElementById('targetType').value;
-        t.className = `target ${type}`;
-        t.style.left = (1500 + (Math.random()-0.5)*1000) + 'px';
-        t.style.top = (1500 + (Math.random()-0.5)*800) + 'px';
-        world.appendChild(t);
-    }
-
-    // ATEŞ VE İSABET
+    // ATEŞ MANTIĞI
     document.addEventListener('mousedown', () => {
-        if (document.pointerLockElement !== document.body) return;
+        if (!isGameRunning) return;
         shots++;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
-        let hitFound = false;
+        let hitDetected = false;
 
         document.querySelectorAll('.target').forEach(t => {
             const r = t.getBoundingClientRect();
@@ -179,7 +195,7 @@
                 hits++; score++;
                 t.remove();
                 spawn();
-                hitFound = true;
+                hitDetected = true;
             }
         });
         
@@ -187,23 +203,31 @@
         scoreText.innerText = score;
     });
 
-    // ZAMANLAYICI DÖNGÜSÜ
+    // TRACKING DÖNGÜSÜ
     setInterval(() => {
-        if (document.pointerLockElement !== document.body) return;
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
-        const s = (elapsed % 60).toString().padStart(2, '0');
-        timerText.innerText = `${m}:${s}`;
-    }, 1000);
+        if (!isGameRunning || gameModeSelect.value !== 'tracking') return;
+        const t = document.querySelector('.target');
+        if (t) {
+            trackingAngle += 0.05;
+            let tx = parseFloat(t.style.left);
+            t.style.left = (tx + Math.sin(trackingAngle) * 10) + 'px';
+            
+            // Otomatik Puan (Takip Ediyorsa)
+            const r = t.getBoundingClientRect();
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+                score += 0.1;
+                scoreText.innerText = Math.floor(score);
+            }
+        }
+    }, 30);
 
-    // Başlat
-    updateCrosshair();
-    for(let i=0; i<3; i++) spawn();
+    // AYAR DEĞİŞİKLİKLERİ
+    document.getElementById('bgType').onchange = (e) => world.className = e.target.value;
+    gameModeSelect.onchange = resetAndSpawn;
+    document.getElementById('targetType').onchange = resetAndSpawn;
 
-    document.getElementById('resetBtn').onclick = () => {
-        score = 0; shots = 0; hits = 0; startTime = Date.now();
-        scoreText.innerText = '0'; accText.innerText = '100';
-    };
 </script>
 </body>
 </html>
