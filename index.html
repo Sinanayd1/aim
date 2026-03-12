@@ -2,161 +2,37 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Gelişmiş FPS Aim Trainer</title>
+    <title>Valorant Aim Trainer - Crosshair Edition</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #111; font-family: 'Segoe UI', sans-serif; color: white; }
+        body { margin: 0; overflow: hidden; background-color: #0f1923; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        /* Kamera Görüş Alanı */
         #viewport {
-            width: 100vw;
-            height: 100vh;
+            width: 100vw; height: 100vh;
             perspective: 1000px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* Hareket Eden Dünya */
+        /* Oyun Dünyası */
         #world {
             position: absolute;
-            width: 200vw;
-            height: 200vh;
+            width: 4000px; height: 3000px;
             background: 
-                linear-gradient(90deg, #222 1px, transparent 1px),
-                linear-gradient(#222 1px, transparent 1px);
-            background-size: 100px 100px;
+                radial-gradient(circle, #1f2933 1.5px, transparent 1.5px);
+            background-size: 60px 60px;
             transform-style: preserve-3d;
             will-change: transform;
         }
 
-        /* Sabit Nişangah */
-        #crosshair {
-            position: fixed;
-            top: 50%; left: 50%;
-            width: 10px; height: 10px;
-            border: 2px solid #0f0;
-            border-radius: 50%;
+        /* ARTİ NİŞANGAH (CROSSHAIR) */
+        #crosshair-container {
+            position: fixed; top: 50%; left: 50%;
+            width: 20px; height: 20px;
             transform: translate(-50%, -50%);
-            z-index: 100;
-            pointer-events: none;
+            z-index: 100; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* Silah */
-        #weapon {
-            position: fixed;
-            bottom: -20px; right: 25%;
-            width: 120px; height: 250px;
-            background: #333;
-            border-radius: 15px 15px 0 0;
-            z-index: 90;
-            transform: rotate(-2deg);
-        }
-
-        .balloon {
+        /* Yatay çizgi */
+        .ch-line-h {
             position: absolute;
-            width: 60px; height: 80px;
-            background: #e74c3c;
-            border-radius: 50%;
-            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3);
-        }
-
-        #ui {
-            position: fixed;
-            top: 20px; left: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
-            border-radius: 10px;
-            z-index: 200;
-        }
-        input { width: 100%; margin-top: 5px; }
-    </style>
-</head>
-<body>
-
-<div id="ui">
-    <div>Skor: <span id="score">0</span></div>
-    <hr>
-    <div>Hassasiyet: <input type="range" id="sens" min="0.1" max="3" step="0.1" value="1"></div>
-    <div>Balon Hızı: <input type="range" id="speed" min="1" max="10" step="1" value="5"></div>
-    <p><small>Tıkla ve Başla (ESC ile çık)</small></p>
-</div>
-
-<div id="crosshair"></div>
-<div id="weapon"></div>
-
-<div id="viewport">
-    <div id="world">
-        <div id="target" class="balloon"></div>
-    </div>
-</div>
-
-<script>
-    const world = document.getElementById('world');
-    const target = document.getElementById('target');
-    const weapon = document.getElementById('weapon');
-    const scoreText = document.getElementById('score');
-    const sensInput = document.getElementById('sens');
-    const speedInput = document.getElementById('speed');
-
-    let score = 0;
-    let viewX = 0;
-    let viewY = 0;
-    
-    // Dünyayı (Ekranı) döndürme fonksiyonu
-    function updateCamera(mx, my) {
-        let sens = sensInput.value;
-        viewX -= mx * 0.1 * sens;
-        viewY -= my * 0.1 * sens;
-
-        // Dünyayı hareket ettirerek "bakış açısı" yaratıyoruz
-        world.style.transform = `translate(${viewX}px, ${viewY}px)`;
-        
-        // Silaha hafif sallanma efekti
-        weapon.style.transform = `translateX(${-mx * 0.5}px) rotate(${-2 - mx * 0.1}deg)`;
-    }
-
-    document.addEventListener('mousemove', (e) => {
-        if (document.pointerLockElement === document.body) {
-            updateCamera(e.movementX, e.movementY);
-        }
-    });
-
-    document.body.addEventListener('click', () => {
-        document.body.requestPointerLock();
-    });
-
-    // Balonu rastgele konuma koy
-    function spawn() {
-        // Balonun konumu dünya içinde rastgele olsun
-        const rx = Math.random() * 1000 + 400;
-        const ry = Math.random() * 800 + 200;
-        target.style.left = rx + 'px';
-        target.style.top = ry + 'px';
-    }
-
-    // Ateş etme
-    document.addEventListener('mousedown', () => {
-        if (document.pointerLockElement === document.body) {
-            // Silah tepmesi
-            weapon.style.transition = "0.05s";
-            weapon.style.bottom = "-50px";
-            setTimeout(() => { weapon.style.bottom = "-20px"; }, 50);
-
-            // Vuruş kontrolü
-            const rect = target.getBoundingClientRect();
-            const cx = window.innerWidth / 2;
-            const cy = window.innerHeight / 2;
-
-            if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
-                score++;
-                scoreText.innerText = score;
-                spawn();
-            }
-        }
-    });
-
-    spawn();
-</script>
-</body>
-</html>
+            width: 16px; height: 2px;
