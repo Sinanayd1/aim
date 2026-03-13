@@ -2,10 +2,10 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Sinan Aydoğan Aim Trainer - Ultimate</title>
+    <title>Sinan Aydoğan FPS Aim Trainer</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; }
+        body { overflow: hidden; background-color: #0d1117; font-family: 'Segoe UI', sans-serif; color: white; cursor: none; }
         
         /* GİRİŞ LOBİSİ */
         #lobby-overlay {
@@ -56,7 +56,6 @@
         }
         #start-btn:hover { background: #ff5e6a; transform: translateY(-2px); }
 
-        /* ÖZET EKRANI */
         #result-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(13, 17, 23, 0.95);
@@ -75,7 +74,7 @@
         }
         #lobby-btn:hover { background: #30363d; }
 
-        /* HUD VE COMBO */
+        /* HUD */
         #hud {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 40px; background: rgba(13, 17, 23, 0.8);
@@ -84,13 +83,6 @@
         }
         .hud-item { display: flex; flex-direction: column; align-items: center; }
         .hud-label { font-size: 10px; color: #8b949e; margin-bottom: 2px; }
-
-        #combo-text {
-            position: fixed; top: 100px; left: 50%; transform: translateX(-50%) scale(1);
-            font-size: 28px; font-weight: 900; color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
-            opacity: 0; transition: all 0.2s ease-out; z-index: 150; pointer-events: none;
-            text-transform: uppercase; letter-spacing: 2px;
-        }
 
         #world {
             position: absolute; width: 3000px; height: 3000px;
@@ -102,12 +94,44 @@
         }
 
         .ch-part { background: #fff; position: absolute; box-shadow: 0 0 2px #000; }
-        #crosshair, #preview-ch { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
+        #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; pointer-events: none; }
         
+        /* HEDEFLER */
         .target { position: absolute; z-index: 10; cursor: none; transition: left 0.1s ease-out, top 0.1s ease-out; }
         .type-balloon { width: 45px; height: 60px; background: #ff4655; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 70, 85, 0.5); }
         .type-orb { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
         .type-cube { width: 35px; height: 35px; background: #ffcc00; border: 2px solid #fff; box-shadow: 0 0 15px rgba(255, 204, 0, 0.5); }
+
+        /* --- SİLAH SİSTEMİ (CSS İLE TABANCA VE RECOIL) --- */
+        #weapon {
+            position: fixed; bottom: -20px; right: 20%;
+            width: 150px; height: 280px;
+            display: none; /* Lobi varken gizli */
+            z-index: 90;
+            pointer-events: none;
+            will-change: transform;
+            /* Recoil (Tepme) için akıcı geçiş */
+            transition: transform 0.05s ease-out, bottom 0.05s ease-out;
+        }
+
+        /* Tabanca Gövdesi */
+        .gun-slide {
+            position: absolute; bottom: 80px; width: 150px; height: 40px;
+            background: linear-gradient(to top, #1a1a1a, #333);
+            border-radius: 5px 5px 0 0;
+        }
+        /* Tabanca Kabzası */
+        .gun-grip {
+            position: absolute; bottom: 0; right: 20px; width: 50px; height: 100px;
+            background: #222; border: 2px solid #111;
+            border-radius: 0 0 10px 10px;
+        }
+        /* Namlu Ucu */
+        .gun-slide::before {
+            content: ''; position: absolute; left: 10px; top: 10px; width: 10px; height: 10px;
+            background: #000; border-radius: 50%;
+        }
+
     </style>
 </head>
 <body>
@@ -116,28 +140,8 @@
     <div id="lobby-content">
         <h1 style="margin-bottom: 5px; letter-spacing: 3px; color: #ff4655; font-size: 24px; text-align: center;">SINAN AYDOĞAN</h1>
         
-        <div id="high-score-display">🏆 <span id="current-mode-name">KLASİK</span> REKORU: <span id="lobby-high-score">0</span></div>
+        <div id="high-score-display">🏆 KLASİK REKORU: <span id="lobby-high-score">0</span></div>
         
-        <div class="form-row">
-            <div class="form-col">
-                <label>Oyun Modu</label>
-                <select id="gameMode">
-                    <option value="flick">Klasik (Sabit Flick)</option>
-                    <option value="reflex">Refleks (Süreli Çıkan)</option>
-                    <option value="tracking">Uzun Takip</option>
-                    <option value="multi">Çoklu Hedef</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Süre Sınırı</label>
-                <select id="timeLimit">
-                    <option value="60">60 Saniye</option>
-                    <option value="30">30 Saniye</option>
-                    <option value="0">Sınırsız (Serbest)</option>
-                </select>
-            </div>
-        </div>
-
         <div class="form-row">
             <div class="form-col">
                 <label>Hedef Tipi</label>
@@ -153,50 +157,8 @@
             </div>
         </div>
 
-        <div class="form-row" id="dynamic-settings-row">
-            <div class="form-col" id="col-tracking" style="display: none;">
-                <label>Takip Hızı</label>
-                <input type="range" id="speed" min="1" max="25" value="8">
-            </div>
-            <div class="form-col" id="col-reflex" style="display: none;">
-                <label>Refleks Zorluğu</label>
-                <select id="difficulty">
-                    <option value="1200">Kolay (1.2 Saniye)</option>
-                    <option value="800">Orta (0.8 Saniye)</option>
-                    <option value="450">Zor (0.45 Saniye)</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-col">
-                <label>Nişangah Tipi</label>
-                <select id="chType">
-                    <option value="cross">Artı (+)</option>
-                    <option value="dot">Nokta (.)</option>
-                    <option value="circle">Daire (o)</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Nişangah Boyutu</label>
-                <input type="range" id="chSize" min="4" max="30" value="16">
-            </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-col">
-                <label>Arka Plan</label>
-                <select id="bgType">
-                    <option value="bg-dots">Noktalı</option>
-                    <option value="bg-grid">Izgara</option>
-                    <option value="bg-dark">Karanlık</option>
-                </select>
-            </div>
-            <div class="form-col">
-                <label>Valorant Sens</label>
-                <input type="number" id="valSens" value="0.5" step="0.1">
-            </div>
-        </div>
+        <label>Valorant Sens</label>
+        <input type="number" id="valSens" value="0.5" step="0.1">
 
         <button id="start-btn">OYUNA BAŞLA</button>
         <p style="margin-top: 10px; color: #484f58; font-size: 11px; text-align: center;">Kamerayı bırakmak için <b>ESC</b> tuşuna bas.</p>
@@ -204,8 +166,8 @@
 
     <div id="preview-box" class="bg-dots">
         <div id="preview-label">CANLI ÖNİZLEME</div>
-        <div id="preview-ch"></div>
-        <div id="preview-target" class="target type-balloon" style="position: relative; margin-left: 80px; margin-top: 40px;"></div>
+        <div id="crosshair" class="ch-part" style="width:20px; height:2px; left:50%; top:50%; transform:translate(-50%,-50%);"></div>
+        <div class="target type-balloon" style="position: relative; margin-left: 80px; margin-top: 40px;"></div>
     </div>
 </div>
 
@@ -214,21 +176,25 @@
         <h1 style="color: #ff4655; margin-bottom: 20px;">SÜRE BİTTİ!</h1>
         <div class="res-stat">SKOR: <span class="res-val" id="res-score">0</span></div>
         <div class="res-stat">İSABET: <span class="res-val" id="res-acc">0%</span></div>
-        <div class="res-stat">EN İYİ SERİ: <span class="res-val" id="res-combo">0</span></div>
-        <div id="new-record-msg" style="color: #00ff00; font-weight: bold; margin-top: 15px; display: none;">🏆 YENİ REKOR! 🏆</div>
         <button id="lobby-btn">LOBİYE DÖN</button>
     </div>
 </div>
 
 <div id="hud">
     <div class="hud-item"><span class="hud-label">SKOR</span><span id="score">0</span></div>
-    <div class="hud-item"><span class="hud-label">KALAN SÜRE</span><span id="timer">00:00</span></div>
+    <div class="hud-item"><span class="hud-label">SÜRE</span><span id="timer">01:00</span></div>
     <div class="hud-item"><span class="hud-label">İSABET</span><span id="accuracy">100</span>%</div>
-    <div class="hud-item"><span class="hud-label">COMBO</span><span id="combo-hud" style="color:#ffcc00;">0x</span></div>
 </div>
 
-<div id="combo-text"></div>
-<div id="crosshair" style="position: fixed;"></div>
+<div id="crosshair">
+    <div class="ch-part" style="width:20px; height:2px; left:-10px; top:-1px;"></div>
+    <div class="ch-part" style="width:2px; height:20px; left:-1px; top:-10px;"></div>
+</div>
+
+<div id="weapon">
+    <div class="gun-slide"></div>
+    <div class="gun-grip"></div>
+</div>
 
 <div id="game-container">
     <div id="world" class="bg-dots">
@@ -241,101 +207,33 @@
     const hud = document.getElementById('hud');
     const lobby = document.getElementById('lobby-overlay');
     const resultOverlay = document.getElementById('result-overlay');
+    const weapon = document.getElementById('weapon'); // Silah referansı
     
     const scoreText = document.getElementById('score');
     const timerText = document.getElementById('timer');
     const accText = document.getElementById('accuracy');
-    const comboHudText = document.getElementById('combo-hud');
-    const comboTextPopup = document.getElementById('combo-text');
     
     const valSensInput = document.getElementById('valSens');
     const startBtn = document.getElementById('start-btn');
     const lobbyBtn = document.getElementById('lobby-btn');
-    const gameModeSelect = document.getElementById('gameMode');
-    const timeLimitSelect = document.getElementById('timeLimit');
-    const bgTypeSelect = document.getElementById('bgType');
     const targetTypeSelect = document.getElementById('targetType');
     const targetSizeInput = document.getElementById('targetSize');
-    const difficultySelect = document.getElementById('difficulty');
     
-    const colTracking = document.getElementById('col-tracking');
-    const colReflex = document.getElementById('col-reflex');
-    const dynamicRow = document.getElementById('dynamic-settings-row');
-    
-    const chBox = document.getElementById('crosshair');
-    const previewBox = document.getElementById('preview-box');
-    const previewCh = document.getElementById('preview-ch');
-    const previewTarget = document.getElementById('preview-target');
-
     let score = 0, shots = 0, hits = 0;
-    let combo = 0, maxCombo = 0;
-    let viewX = 0, viewY = 0;
-    let gameState = 'lobby'; 
-    let trackingAngle = 0;
+    let viewX = 0, viewY = 0, gameState = 'lobby'; 
     let timerInterval;
-    let timeLeft = 0, maxTime = 0;
-    let reflexTimeout; 
+    let timeLeft = 60; // 1 dakikalık antrenman
     
-    let highScores = JSON.parse(localStorage.getItem('sinanAimScores')) || {
-        flick: 0, reflex: 0, tracking: 0, multi: 0
-    };
-
-    // --- DİNAMİK ARAYÜZ (GEREKSİZ AYARLARI GİZLE) ---
-    function updateLobbyUI() {
-        const mode = gameModeSelect.value;
-        const modeNames = { flick: "KLASİK", reflex: "REFLEKS", tracking: "TAKİP", multi: "ÇOKLU" };
-        
-        document.getElementById('current-mode-name').innerText = modeNames[mode];
-        document.getElementById('lobby-high-score').innerText = highScores[mode] || 0;
-
-        // Modlara özel ayarları göster/gizle
-        colTracking.style.display = (mode === 'tracking') ? 'block' : 'none';
-        colReflex.style.display = (mode === 'reflex') ? 'block' : 'none';
-        
-        // Eğer ikisi de kapalıysa o satırı tamamen gizle ki boşluk kalmasın
-        if(mode !== 'tracking' && mode !== 'reflex') {
-            dynamicRow.style.display = 'none';
-        } else {
-            dynamicRow.style.display = 'flex';
-        }
-    }
-    gameModeSelect.addEventListener('change', updateLobbyUI);
-    updateLobbyUI();
-
-    function updatePreviewAndCrosshair() {
-        const type = document.getElementById('chType').value;
-        const size = parseInt(document.getElementById('chSize').value);
-        const tScale = targetSizeInput.value;
-        let chHTML = '';
-
-        if(type === 'cross') {
-            chHTML = `<div class="ch-part" style="width:${size}px; height:2px; left:-${size/2}px; top:-1px;"></div>
-                      <div class="ch-part" style="width:2px; height:${size}px; left:-1px; top:-${size/2}px;"></div>`;
-        } else if(type === 'dot') {
-            chHTML = `<div class="ch-part" style="width:${size/2}px; height:${size/2}px; left:-${size/4}px; top:-${size/4}px; border-radius:50%;"></div>`;
-        } else if(type === 'circle') {
-            chHTML = `<div class="ch-part" style="width:${size}px; height:${size}px; left:-${size/2}px; top:-${size/2}px; border-radius:50%; background:transparent; border:2px solid #fff;"></div>`;
-        }
-
-        chBox.innerHTML = chHTML;
-        previewCh.innerHTML = chHTML;
-        previewBox.className = bgTypeSelect.value;
-        previewTarget.className = `target ${targetTypeSelect.value}`;
-        previewTarget.style.transform = `scale(${tScale})`;
-    }
-
-    document.getElementById('chType').addEventListener('change', updatePreviewAndCrosshair);
-    document.getElementById('chSize').addEventListener('input', updatePreviewAndCrosshair);
-    document.getElementById('targetSize').addEventListener('input', updatePreviewAndCrosshair);
-    bgTypeSelect.addEventListener('change', updatePreviewAndCrosshair);
-    targetTypeSelect.addEventListener('change', updatePreviewAndCrosshair);
-    updatePreviewAndCrosshair();
+    // Rekor Sistemi
+    let highScore = localStorage.getItem('sinanFlickScore') || 0;
+    document.getElementById('lobby-high-score').innerText = highScore;
 
     startBtn.onclick = () => document.body.requestPointerLock();
     
     lobbyBtn.onclick = () => {
         resultOverlay.style.display = 'none';
         lobby.style.display = 'flex';
+        weapon.style.display = 'none'; // Silahı gizle
         gameState = 'lobby';
     };
 
@@ -346,11 +244,10 @@
             if (gameState === 'playing') {
                 lobby.style.display = 'flex';
                 hud.style.display = 'none';
+                weapon.style.display = 'none'; // Silahı gizle
                 clearAllTargets();
                 clearInterval(timerInterval);
-                clearTimeout(reflexTimeout);
                 gameState = 'lobby';
-                updateLobbyUI();
             }
         }
     });
@@ -360,84 +257,65 @@
         lobby.style.display = 'none';
         resultOverlay.style.display = 'none';
         hud.style.display = 'flex';
-        world.className = bgTypeSelect.value;
+        weapon.style.display = 'block'; // Silahı göster
+        world.className = "bg-dots";
         
-        score = 0; shots = 0; hits = 0; combo = 0; maxCombo = 0; viewX = 0; viewY = 0;
+        score = 0; shots = 0; hits = 0; viewX = 0; viewY = 0; timeLeft = 60;
         document.getElementById('new-record-msg').style.display = 'none';
-        
-        maxTime = parseInt(timeLimitSelect.value);
-        timeLeft = maxTime;
         
         updateStats();
         resetTargets();
         
         clearInterval(timerInterval);
-        timerInterval = setInterval(gameTick, 30); 
+        timerInterval = setInterval(gameTick, 1000); // 1s sürecek zamanlayıcı
     }
 
     function endGame() {
         gameState = 'result';
         document.exitPointerLock(); 
         clearInterval(timerInterval);
-        clearTimeout(reflexTimeout);
         hud.style.display = 'none';
+        weapon.style.display = 'none'; // Silahı gizle
         clearAllTargets();
         
         document.getElementById('res-score').innerText = Math.floor(score);
         document.getElementById('res-acc').innerText = shots === 0 ? "100%" : Math.floor((hits / shots) * 100) + "%";
-        document.getElementById('res-combo').innerText = maxCombo + "x";
         
-        const mode = gameModeSelect.value;
-        if (score > (highScores[mode] || 0) && maxTime > 0) { 
-            highScores[mode] = Math.floor(score);
-            localStorage.setItem('sinanAimScores', JSON.stringify(highScores));
+        if (score > highScore) { 
+            highScore = Math.floor(score);
+            localStorage.setItem('sinanFlickScore', highScore);
             document.getElementById('new-record-msg').style.display = 'block';
+            document.getElementById('lobby-high-score').innerText = highScore;
         }
         
         resultOverlay.style.display = 'flex';
-        updateLobbyUI();
     }
 
     function resetTargets() {
         clearAllTargets();
-        const count = gameModeSelect.value === 'multi' ? 5 : 1;
-        for(let i=0; i<count; i++) spawn();
+        spawn();
     }
 
     function clearAllTargets() {
         document.querySelectorAll('#world .target').forEach(t => t.remove());
     }
 
-    // --- MERKEZ ODAKLI HEDEF ÇIKARMA ---
+    // MERKEZ ODAKLI DOĞMA
     function spawn() {
         if(gameState !== 'playing') return;
         const t = document.createElement('div');
         t.className = `target ${targetTypeSelect.value}`;
         t.style.transform = `scale(${targetSizeInput.value})`;
         
-        // ALAN DARALTILDI: Farenin kolayca erişebileceği göbek bölgesi (Yaklaşık 1150-1850 px arası)
-        const rx = 1500 + (Math.random()-0.5) * 700; 
-        const ry = 1500 + (Math.random()-0.5) * 500; 
+        const rx = 1500 + (Math.random()-0.5) * 800; 
+        const ry = 1500 + (Math.random()-0.5) * 600; 
         
         t.style.left = rx + 'px';
         t.style.top = ry + 'px';
         world.appendChild(t);
-
-        if (gameModeSelect.value === 'reflex') {
-            clearTimeout(reflexTimeout);
-            const difficultyTime = parseInt(difficultySelect.value); 
-            
-            reflexTimeout = setTimeout(() => {
-                if(t.parentNode && gameState === 'playing') {
-                    t.remove();
-                    combo = 0; 
-                    updateStats();
-                    spawn();
-                }
-            }, difficultyTime);
-        }
     }
 
+    // KAMERA VE SİLAH TAKİBİ (Gun Sway)
     document.addEventListener('mousemove', (e) => {
         if (gameState === 'playing') {
             let sens = parseFloat(valSensInput.value) || 0.5;
@@ -447,108 +325,61 @@
             viewX = Math.max(-1000, Math.min(1000, viewX));
             viewY = Math.max(-800, Math.min(800, viewY));
             world.style.transform = `translate(${viewX}px, ${viewY}px)`;
+
+            // Gun Sway: Silah fare yönüne hafifçe gecikmeli bakar
+            // Bu, silahın "ağır" ve "gerçekçi" hissetmesini sağlar.
+            const swayX = e.movementX * sens * 0.2; // Sağ-Sol sallanma
+            const swayY = e.movementY * sens * 0.2; // Yukarı-Aşağı sallanma
+            
+            // Silahın pozisyonunu ve açısını hafifçe değiştir
+            weapon.style.transform = `translate(${swayX}px, ${-20 + swayY}px) rotate(${-2 - swayX/5}deg)`;
         }
     });
 
+    // ATEŞ MANTIĞI VE RECOIL
     document.addEventListener('mousedown', () => {
-        if (gameState !== 'playing' || gameModeSelect.value === 'tracking') return;
+        if (gameState !== 'playing') return;
+        
         shots++;
+        
+        // --- RECOIL (SİLAH TEPME) EFEKTİ ---
+        weapon.style.transition = "0s"; // Hızlı tepme için transition'ı sıfırla
+        // Silahı aniden yukarı ve geriye at
+        weapon.style.transform = "translate(0px, -70px) rotate(-10deg)";
+        
+        // 50ms sonra eski haline akıcı bir şekilde döndür
+        setTimeout(() => {
+            weapon.style.transition = "transform 0.2s ease-out"; // Süzülerek geri dönme
+            weapon.style.transform = "translate(0px, -20px) rotate(-2deg)";
+        }, 50);
+
+        // Vuruş Algılama
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
-        let hitDetected = false;
-        
         document.querySelectorAll('#world .target').forEach(t => {
             const r = t.getBoundingClientRect();
             if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                hitDetected = true;
                 hits++; score++;
                 t.remove();
-                
-                if (gameModeSelect.value === 'reflex') clearTimeout(reflexTimeout);
-                
                 spawn();
             }
         });
         
-        if (hitDetected) {
-            combo++;
-            if (combo > maxCombo) maxCombo = combo;
-            showComboFeedback();
-        } else {
-            combo = 0; 
-        }
-        
         updateStats();
     });
-
-    function showComboFeedback() {
-        let msg = "";
-        if (combo === 5) msg = "İLK KAN!";
-        else if (combo === 10) msg = "SERİ KATİL!";
-        else if (combo === 15) msg = "DURDURULAMAZ!";
-        else if (combo >= 20 && combo % 5 === 0) msg = "İLAH GİBİ!";
-
-        if (msg !== "") {
-            comboTextPopup.innerText = `${msg} (${combo}x)`;
-            comboTextPopup.style.opacity = 1;
-            comboTextPopup.style.transform = "translateX(-50%) scale(1.5)";
-            
-            score += 2; 
-            
-            setTimeout(() => {
-                comboTextPopup.style.opacity = 0;
-                comboTextPopup.style.transform = "translateX(-50%) scale(1)";
-            }, 1000);
-        }
-    }
 
     function updateStats() {
         scoreText.innerText = Math.floor(score);
         accText.innerText = shots === 0 ? 100 : Math.floor((hits / shots) * 100);
-        comboHudText.innerText = combo + "x";
     }
 
-    let lastTimeUpdate = Date.now();
-    
     function gameTick() {
         if (gameState !== 'playing') return;
-        
-        if (maxTime > 0) {
-            let now = Date.now();
-            if (now - lastTimeUpdate >= 1000) {
-                timeLeft--;
-                lastTimeUpdate = now;
-                if (timeLeft <= 0) {
-                    endGame();
-                    return;
-                }
-            }
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            timerText.innerText = `${m}:${s}`;
-        } else {
-            timerText.innerText = "∞"; 
-        }
-
-        const speed = parseInt(document.getElementById('speed').value);
-        const mode = gameModeSelect.value;
-
-        if (mode === 'tracking') {
-            const t = document.querySelector('#world .target');
-            if (t) {
-                trackingAngle += 0.02 * speed;
-                let tx = parseFloat(t.style.left);
-                t.style.left = (tx + Math.sin(trackingAngle) * (speed * 1.5)) + 'px';
-                
-                const r = t.getBoundingClientRect();
-                const cx = window.innerWidth / 2;
-                const cy = window.innerHeight / 2;
-                if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                    score += 0.15;
-                    updateStats();
-                }
-            }
-        }
+        timeLeft--;
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        timerText.innerText = `${m}:${s}`;
+        if (timeLeft <= 0) endGame();
     }
 
 </script>
