@@ -21,7 +21,6 @@
             width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        /* REKOR TABELASI */
         #high-score-display {
             background: rgba(255, 70, 85, 0.1); border: 1px solid #ff4655;
             padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;
@@ -76,7 +75,7 @@
         }
         #lobby-btn:hover { background: #30363d; }
 
-        /* OYUN İÇİ HUD VE COMBO */
+        /* HUD VE COMBO */
         #hud {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 40px; background: rgba(13, 17, 23, 0.8);
@@ -154,12 +153,12 @@
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-col">
-                <label>Takip Hızı (Sadece Tracking)</label>
+        <div class="form-row" id="dynamic-settings-row">
+            <div class="form-col" id="col-tracking" style="display: none;">
+                <label>Takip Hızı</label>
                 <input type="range" id="speed" min="1" max="25" value="8">
             </div>
-            <div class="form-col">
+            <div class="form-col" id="col-reflex" style="display: none;">
                 <label>Refleks Zorluğu</label>
                 <select id="difficulty">
                     <option value="1200">Kolay (1.2 Saniye)</option>
@@ -259,6 +258,10 @@
     const targetSizeInput = document.getElementById('targetSize');
     const difficultySelect = document.getElementById('difficulty');
     
+    const colTracking = document.getElementById('col-tracking');
+    const colReflex = document.getElementById('col-reflex');
+    const dynamicRow = document.getElementById('dynamic-settings-row');
+    
     const chBox = document.getElementById('crosshair');
     const previewBox = document.getElementById('preview-box');
     const previewCh = document.getElementById('preview-ch');
@@ -271,21 +274,33 @@
     let trackingAngle = 0;
     let timerInterval;
     let timeLeft = 0, maxTime = 0;
-    let reflexTimeout; // Yeni Refleks Modu Zamanlayıcısı
+    let reflexTimeout; 
     
-    // Her mod için ayrı rekor tablosu
     let highScores = JSON.parse(localStorage.getItem('sinanAimScores')) || {
         flick: 0, reflex: 0, tracking: 0, multi: 0
     };
 
-    function updateLobbyHighScore() {
+    // --- DİNAMİK ARAYÜZ (GEREKSİZ AYARLARI GİZLE) ---
+    function updateLobbyUI() {
         const mode = gameModeSelect.value;
         const modeNames = { flick: "KLASİK", reflex: "REFLEKS", tracking: "TAKİP", multi: "ÇOKLU" };
+        
         document.getElementById('current-mode-name').innerText = modeNames[mode];
         document.getElementById('lobby-high-score').innerText = highScores[mode] || 0;
+
+        // Modlara özel ayarları göster/gizle
+        colTracking.style.display = (mode === 'tracking') ? 'block' : 'none';
+        colReflex.style.display = (mode === 'reflex') ? 'block' : 'none';
+        
+        // Eğer ikisi de kapalıysa o satırı tamamen gizle ki boşluk kalmasın
+        if(mode !== 'tracking' && mode !== 'reflex') {
+            dynamicRow.style.display = 'none';
+        } else {
+            dynamicRow.style.display = 'flex';
+        }
     }
-    gameModeSelect.addEventListener('change', updateLobbyHighScore);
-    updateLobbyHighScore();
+    gameModeSelect.addEventListener('change', updateLobbyUI);
+    updateLobbyUI();
 
     function updatePreviewAndCrosshair() {
         const type = document.getElementById('chType').value;
@@ -335,7 +350,7 @@
                 clearInterval(timerInterval);
                 clearTimeout(reflexTimeout);
                 gameState = 'lobby';
-                updateLobbyHighScore();
+                updateLobbyUI();
             }
         }
     });
@@ -380,7 +395,7 @@
         }
         
         resultOverlay.style.display = 'flex';
-        updateLobbyHighScore();
+        updateLobbyUI();
     }
 
     function resetTargets() {
@@ -393,29 +408,29 @@
         document.querySelectorAll('#world .target').forEach(t => t.remove());
     }
 
-    // HEDEF OLUŞTURMA VE REFLEKS MODU MANTIĞI
+    // --- MERKEZ ODAKLI HEDEF ÇIKARMA ---
     function spawn() {
         if(gameState !== 'playing') return;
         const t = document.createElement('div');
         t.className = `target ${targetTypeSelect.value}`;
         t.style.transform = `scale(${targetSizeInput.value})`;
         
-        const rx = 1500 + (Math.random()-0.5) * 1000; 
-        const ry = 1500 + (Math.random()-0.5) * 800; 
+        // ALAN DARALTILDI: Farenin kolayca erişebileceği göbek bölgesi (Yaklaşık 1150-1850 px arası)
+        const rx = 1500 + (Math.random()-0.5) * 700; 
+        const ry = 1500 + (Math.random()-0.5) * 500; 
         
         t.style.left = rx + 'px';
         t.style.top = ry + 'px';
         world.appendChild(t);
 
-        // Refleks Modu İçin Zamanlayıcı
         if (gameModeSelect.value === 'reflex') {
             clearTimeout(reflexTimeout);
-            const difficultyTime = parseInt(difficultySelect.value); // Kolay 1200ms, Zor 450ms
+            const difficultyTime = parseInt(difficultySelect.value); 
             
             reflexTimeout = setTimeout(() => {
                 if(t.parentNode && gameState === 'playing') {
                     t.remove();
-                    combo = 0; // Vuramadığı için combo sıfırlanır
+                    combo = 0; 
                     updateStats();
                     spawn();
                 }
@@ -449,7 +464,6 @@
                 hits++; score++;
                 t.remove();
                 
-                // Refleks modundaysa zamanlayıcıyı durdur
                 if (gameModeSelect.value === 'reflex') clearTimeout(reflexTimeout);
                 
                 spawn();
@@ -519,7 +533,6 @@
         const speed = parseInt(document.getElementById('speed').value);
         const mode = gameModeSelect.value;
 
-        // Tracking (Takip) Hareket Sistemi
         if (mode === 'tracking') {
             const t = document.querySelector('#world .target');
             if (t) {
@@ -536,8 +549,6 @@
                 }
             }
         }
-        
-        // Klasik ve Refleks Modlarında hedefler artık hareket etmiyor.
     }
 
 </script>
